@@ -1,0 +1,25 @@
+import dotenv from 'dotenv';
+import path from 'path';
+
+// 加载 .env（若存在）
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+
+export const config = {
+  port: parseInt(process.env.PORT || '3000', 10),
+  uploadDir: path.resolve(__dirname, '../../', process.env.UPLOAD_DIR || 'uploads'),
+  thumbnailWidth: parseInt(process.env.THUMBNAIL_WIDTH || '400', 10),
+  siteUrl: process.env.SITE_URL || 'http://localhost:3000',
+  accessPassword: process.env.ACCESS_PASSWORD || '',
+  adminUsername: process.env.ADMIN_USERNAME || 'admin',
+
+  wechat: {
+    token: process.env.WECHAT_TOKEN || '',
+    appId: process.env.WECHAT_APP_ID || '',
+    appSecret: process.env.WECHAT_APP_SECRET || '',
+    encodingAESKey: process.env.WECHAT_ENCODING_AES_KEY || '',
+  },
+
+  db: {
+    path: path.resolve(__dirname, '../../data/photos.json'),
+  },
+};

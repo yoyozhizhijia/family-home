@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d4a574;
+  border-radius: 3px;
+}
+
+/* 瀑布流网格 */
+.masonry-grid {
+  column-count: 4;
+  column-gap: 12px;
+}
+@media (max-width: 1024px) {
+  .masonry-grid { column-count: 3; }
+}
+@media (max-width: 768px) {
+  .masonry-grid { column-count: 2; }
+}
+@media (max-width: 480px) {
+  .masonry-grid { column-count: 1; }
+}
+
+.masonry-item {
+  break-inside: avoid;
+  margin-bottom: 12px;
+}
+
+/* 淡入动画 */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-in {
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* 灯箱遮罩 */
+.lightbox-overlay {
+  background: rgba(0, 0, 0, 0.92);
+}
