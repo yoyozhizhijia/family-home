@@ -5,9 +5,9 @@ import fs from 'fs';
 import { config } from './config';
 import wechatRoutes from './routes/wechat';
 import photoRoutes from './routes/photos';
-import { listMonths, countByMonth } from './models/photo';
+import { listMonths, countByMonth, dataInitPromise } from './models/photo';
 import { verifyCredentials, verifyToken } from './services/authService';
-import { listMembers, upsertMember, removeMember } from './models/member';
+import { listMembers, upsertMember, removeMember, memberInitPromise } from './models/member';
 import { setCustomMenu } from './services/wechatService';
 import { getStorageUsage } from './services/cloudinaryService';
 
@@ -79,6 +79,17 @@ app.delete('/api/members/:openid', requireAdmin, (req, res) => {
   res.json({ success: true });
 });
 
+// 修改成员昵称
+app.patch('/api/members/:openid', requireAdmin, (req, res) => {
+  const { nickname } = req.body;
+  if (!nickname || typeof nickname !== 'string') {
+    res.status(400).json({ error: '昵称不能为空' });
+    return;
+  }
+  const member = upsertMember(req.params.openid, nickname.trim());
+  res.json(member);
+});
+
 // 月份归档
 app.get('/api/months', (_req, res) => {
   const months = listMonths();
@@ -127,17 +138,24 @@ app.get('*', (_req, res) => {
 });
 
 // ── 启动 ────────────────────────────────────────
-app.listen(config.port, () => {
-  console.log(`🏡 家庭时光服务器已启动: http://localhost:${config.port}`);
-  console.log(`   微信回调地址: ${config.siteUrl}/api/wechat/callback`);
-  console.log(`   上传目录: ${config.uploadDir}`);
+async function start() {
+  // 等待数据从云端恢复
+  await Promise.all([dataInitPromise, memberInitPromise]);
+  console.log('[启动] 数据初始化完成，准备接受请求');
 
-  // 自动设置公众号菜单（AppID+AppSecret 都配了才执行）
-  if (config.wechat.appId && config.wechat.appSecret) {
-    setCustomMenu().catch((err) => {
-      console.error('[微信] 菜单自动设置失败:', err.message);
-    });
-  } else {
-    console.log('[微信] AppID/AppSecret 未配置，跳过菜单自动设置');
-  }
-});
+  app.listen(config.port, () => {
+    console.log(`🏡 家庭时光服务器已启动: http://localhost:${config.port}`);
+    console.log(`   微信回调地址: ${config.siteUrl}/api/wechat/callback`);
+
+    // 自动设置公众号菜单（AppID+AppSecret 都配了才执行）
+    if (config.wechat.appId && config.wechat.appSecret) {
+      setCustomMenu().catch((err) => {
+        console.error('[微信] 菜单自动设置失败:', err.message);
+      });
+    } else {
+      console.log('[微信] AppID/AppSecret 未配置，跳过菜单自动设置');
+    }
+  });
+}
+
+start();

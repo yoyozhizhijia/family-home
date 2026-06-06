@@ -34,7 +34,7 @@ async function save() {
 }
 
 /** 启动时从云端恢复 */
-async function initFromCloud() {
+export async function initFromCloud() {
   const remote = await restoreJson<Member[]>(BACKUP_KEY);
   if (remote && Array.isArray(remote)) {
     members = remote;
@@ -51,7 +51,7 @@ async function initFromCloud() {
   }
 }
 
-initFromCloud();
+export const memberInitPromise = initFromCloud();
 
 /** 判断 openid 是否在白名单中 */
 export function isMember(openid: string): boolean {

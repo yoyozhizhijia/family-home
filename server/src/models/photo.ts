@@ -52,7 +52,7 @@ async function save(): Promise<void> {
 }
 
 /** 启动时尝试从 Cloudinary 恢复，本地数据兜底 */
-async function initFromCloud(): Promise<void> {
+export async function initFromCloud(): Promise<void> {
   const remote = await restoreJson<PhotoRecord[]>(BACKUP_KEY);
   if (remote && Array.isArray(remote)) {
     photos = remote;
@@ -70,8 +70,8 @@ async function initFromCloud(): Promise<void> {
   }
 }
 
-// 启动时异步从云端恢复
-initFromCloud();
+// 导出初始化 Promise，供 server 启动前等待
+export const dataInitPromise = initFromCloud();
 
 /** 插入照片记录 */
 export function insertPhoto(params: {

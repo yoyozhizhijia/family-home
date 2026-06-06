@@ -135,10 +135,9 @@ export async function backupJson(key: string, data: object): Promise<void> {
   await new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
       {
-        public_id: `${BACKUP_PREFIX}/${key}`,
+        public_id: `family-home/${BACKUP_PREFIX}/${key}`,
         resource_type: 'raw',
         overwrite: true,
-        folder: 'family-home',
       },
       (error, result) => {
         if (error) reject(error);
@@ -157,7 +156,7 @@ export async function backupJson(key: string, data: object): Promise<void> {
 export async function restoreJson<T>(key: string): Promise<T | null> {
   ensureInit();
   try {
-    const url = cloudinary.url(`${BACKUP_PREFIX}/${key}`, {
+    const url = cloudinary.url(`family-home/${BACKUP_PREFIX}/${key}`, {
       secure: true,
       resource_type: 'raw',
     });

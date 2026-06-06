@@ -17,6 +17,8 @@ export default function MemberManager({ authedFetch, onClose }: MemberManagerPro
   const [nickname, setNickname] = useState('');
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editNick, setEditNick] = useState('');
 
   const loadMembers = async () => {
     try {
@@ -59,6 +61,24 @@ export default function MemberManager({ authedFetch, onClose }: MemberManagerPro
     if (!confirm(`确定移除此成员吗？ta 发送照片将被忽略。`)) return;
     try {
       await authedFetch(`/api/members/${encodeURIComponent(openid)}`, { method: 'DELETE' });
+      loadMembers();
+    } catch {}
+  };
+
+  const handleEditStart = (m: Member) => {
+    setEditingId(m.openid);
+    setEditNick(m.nickname);
+  };
+
+  const handleEditSave = async (openid: string) => {
+    if (!editNick.trim()) return;
+    try {
+      await authedFetch(`/api/members/${encodeURIComponent(openid)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nickname: editNick.trim() }),
+      });
+      setEditingId(null);
       loadMembers();
     } catch {}
   };
@@ -117,16 +137,44 @@ export default function MemberManager({ authedFetch, onClose }: MemberManagerPro
                   key={m.openid}
                   className="flex items-center justify-between px-3 py-2 bg-amber-50 rounded-lg text-sm"
                 >
-                  <div>
-                    <span className="font-medium text-amber-800">{m.nickname}</span>
-                    <span className="text-amber-400 text-[10px] ml-2">{m.openid.substring(0, 16)}...</span>
+                  {editingId === m.openid ? (
+                    <div className="flex items-center gap-1 flex-1">
+                      <input
+                        type="text"
+                        value={editNick}
+                        onChange={(e) => setEditNick(e.target.value)}
+                        className="flex-1 px-2 py-1 border border-amber-300 rounded text-xs focus:outline-none focus:ring-2 focus:ring-amber-400"
+                        autoFocus
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleEditSave(m.openid);
+                          if (e.key === 'Escape') setEditingId(null);
+                        }}
+                      />
+                      <button onClick={() => handleEditSave(m.openid)} className="text-green-600 hover:text-green-800 text-xs px-1">✓</button>
+                      <button onClick={() => setEditingId(null)} className="text-red-400 hover:text-red-600 text-xs px-1">✕</button>
+                    </div>
+                  ) : (
+                    <div>
+                      <span className="font-medium text-amber-800">{m.nickname}</span>
+                      <span className="text-amber-400 text-[10px] ml-2">{m.openid.substring(0, 16)}...</span>
+                    </div>
+                  )}
+                  <div className="flex gap-2">
+                    {editingId !== m.openid && (
+                      <button
+                        onClick={() => handleEditStart(m)}
+                        className="text-blue-400 hover:text-blue-600 text-xs transition"
+                      >
+                        ✏️
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleDelete(m.openid)}
+                      className="text-red-400 hover:text-red-600 text-xs transition"
+                    >
+                      移除
+                    </button>
                   </div>
-                  <button
-                    onClick={() => handleDelete(m.openid)}
-                    className="text-red-400 hover:text-red-600 text-xs transition"
-                  >
-                    移除
-                  </button>
                 </div>
               ))}
             </div>
