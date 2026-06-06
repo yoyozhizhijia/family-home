@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { config } from '../config';
-import { deleteFromCloudinary } from '../services/cloudinaryService';
+import { deleteFromCloudinary, backupJson, restoreJson } from '../services/cloudinaryService';
 
 export interface PhotoRecord {
   id: string;
@@ -19,8 +19,9 @@ export interface PhotoRecord {
 
 const DATA_FILE = config.db.path;
 const dataDir = path.dirname(DATA_FILE);
+const BACKUP_KEY = 'photos';
 
-// 按上传时间倒序的内存索引（与文件保持同步）
+// 按上传时间倒序的内存索引
 let photos: PhotoRecord[] = [];
 
 /** 从文件加载数据 */
@@ -37,16 +38,40 @@ function load(): void {
   }
 }
 
-/** 保存数据到文件 */
-function save(): void {
+/** 保存数据到文件 + 同步备份到 Cloudinary */
+async function save(): Promise<void> {
   if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
   }
   fs.writeFileSync(DATA_FILE, JSON.stringify(photos, null, 2), 'utf8');
+
+  // 异步备份到 Cloudinary（不阻塞）
+  backupJson(BACKUP_KEY, photos).catch((err) => {
+    console.error('[数据] 云端备份失败:', err.message);
+  });
 }
 
-// 启动时加载
-load();
+/** 启动时尝试从 Cloudinary 恢复，本地数据兜底 */
+async function initFromCloud(): Promise<void> {
+  const remote = await restoreJson<PhotoRecord[]>(BACKUP_KEY);
+  if (remote && Array.isArray(remote)) {
+    photos = remote;
+    // 同步写到本地文件
+    if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+    fs.writeFileSync(DATA_FILE, JSON.stringify(photos, null, 2), 'utf8');
+    console.log(`[数据] 从云端恢复 ${photos.length} 条照片记录`);
+  } else {
+    load();
+    console.log(`[数据] 使用本地数据，共 ${photos.length} 条记录`);
+    // 首次启动也备份一次
+    if (photos.length > 0) {
+      backupJson(BACKUP_KEY, photos).catch(() => {});
+    }
+  }
+}
+
+// 启动时异步从云端恢复
+initFromCloud();
 
 /** 插入照片记录 */
 export function insertPhoto(params: {

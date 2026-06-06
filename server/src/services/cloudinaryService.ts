@@ -1,4 +1,5 @@
 import { v2 as cloudinary } from 'cloudinary';
+import axios from 'axios';
 import { config } from '../config';
 
 // ── 初始化 ──────────────────────────────────────
@@ -119,5 +120,51 @@ export async function getStorageUsage(): Promise<{
   } catch (err) {
     console.error('[Cloudinary] 查询用量失败:', err);
     throw err;
+  }
+}
+
+// ── 数据持久化：备份/恢复 JSON 数据 ──────────
+
+const BACKUP_PREFIX = 'data-backup';
+
+/** 备份 JSON 数据到 Cloudinary（raw 文件） */
+export async function backupJson(key: string, data: object): Promise<void> {
+  ensureInit();
+  const json = Buffer.from(JSON.stringify(data), 'utf8');
+
+  await new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        public_id: `${BACKUP_PREFIX}/${key}`,
+        resource_type: 'raw',
+        overwrite: true,
+        folder: 'family-home',
+      },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result);
+      },
+    );
+    const { Readable } = require('stream');
+    const readable = new Readable();
+    readable.push(json);
+    readable.push(null);
+    readable.pipe(stream);
+  });
+}
+
+/** 从 Cloudinary 恢复 JSON 数据，失败返回 null */
+export async function restoreJson<T>(key: string): Promise<T | null> {
+  ensureInit();
+  try {
+    const url = cloudinary.url(`${BACKUP_PREFIX}/${key}`, {
+      secure: true,
+      resource_type: 'raw',
+    });
+    const response = await require('axios').get(url, { timeout: 15000 });
+    return JSON.parse(response.data);
+  } catch {
+    console.log(`[Cloudinary] 未找到云端备份: ${key}，使用本地数据`);
+    return null;
   }
 }

@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { config } from '../config';
+import { backupJson, restoreJson } from '../services/cloudinaryService';
 
 export interface Member {
   openid: string;
@@ -9,6 +10,7 @@ export interface Member {
 }
 
 const MEMBER_FILE = path.resolve(path.dirname(config.db.path), 'members.json');
+const BACKUP_KEY = 'members';
 let members: Member[] = [];
 
 function load() {
@@ -20,13 +22,36 @@ function load() {
   }
 }
 
-function save() {
+async function save() {
   const dir = path.dirname(MEMBER_FILE);
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(MEMBER_FILE, JSON.stringify(members, null, 2), 'utf8');
+
+  // 异步备份到 Cloudinary
+  backupJson(BACKUP_KEY, members).catch((err) => {
+    console.error('[成员] 云端备份失败:', err.message);
+  });
 }
 
-load();
+/** 启动时从云端恢复 */
+async function initFromCloud() {
+  const remote = await restoreJson<Member[]>(BACKUP_KEY);
+  if (remote && Array.isArray(remote)) {
+    members = remote;
+    const dir = path.dirname(MEMBER_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(MEMBER_FILE, JSON.stringify(members, null, 2), 'utf8');
+    console.log(`[成员] 从云端恢复 ${members.length} 位成员`);
+  } else {
+    load();
+    console.log(`[成员] 使用本地数据，共 ${members.length} 位`);
+    if (members.length > 0) {
+      backupJson(BACKUP_KEY, members).catch(() => {});
+    }
+  }
+}
+
+initFromCloud();
 
 /** 判断 openid 是否在白名单中 */
 export function isMember(openid: string): boolean {
