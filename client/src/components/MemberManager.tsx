@@ -182,12 +182,9 @@ export default function MemberManager({ authedFetch, onClose }: MemberManagerPro
         </div>
 
         <div className="mt-4 pt-3 border-t border-amber-100">
-          <p className="text-[10px] text-amber-400">
-            💡 提示：让家庭成员给公众号发一条消息，服务端控制台就会打印其 OpenID，复制过来即可。
-          </p>
           <button
             onClick={onClose}
-            className="mt-3 w-full py-2 text-sm text-amber-600 border border-amber-200 rounded-lg hover:bg-amber-50 transition"
+            className="w-full py-2 text-sm text-amber-600 border border-amber-200 rounded-lg hover:bg-amber-50 transition"
           >
             关闭
           </button>
