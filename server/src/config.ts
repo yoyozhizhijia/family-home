@@ -20,6 +20,16 @@ export const config = {
     encodingAESKey: (process.env.WECHAT_ENCODING_AES_KEY || '').trim(),
   },
 
+  r2: {
+    accountId: (process.env.R2_ACCOUNT_ID || '').trim(),
+    accessKeyId: (process.env.R2_ACCESS_KEY_ID || '').trim(),
+    secretAccessKey: (process.env.R2_SECRET_ACCESS_KEY || '').trim(),
+    bucketName: (process.env.R2_BUCKET_NAME || 'family-home').trim(),
+    publicUrl: (process.env.R2_PUBLIC_URL || '').trim(),
+    // 存储容量告警阈值 (GB)，达到后提示扩容
+    storageAlertGB: parseFloat(process.env.R2_STORAGE_ALERT_GB || '9'),
+  },
+
   db: {
     path: path.resolve(__dirname, '../../data/photos.json'),
   },

@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { config } from '../config';
+import { deleteFromR2 } from '../services/r2Service';
 
 export interface PhotoRecord {
   id: string;
@@ -142,10 +143,13 @@ export function deletePhoto(id: string): boolean {
 
   const photo = photos[idx];
 
-  // 删除原图文件
-  try { fs.unlinkSync(photo.original_path); } catch {}
-  // 删除缩略图文件
-  try { fs.unlinkSync(photo.thumbnail_path); } catch {}
+  // 从 R2 删除文件（key 存在 original_path / thumbnail_path 中）
+  if (photo.original_path) {
+    deleteFromR2(photo.original_path).catch(() => {});
+  }
+  if (photo.thumbnail_path) {
+    deleteFromR2(photo.thumbnail_path).catch(() => {});
+  }
 
   photos.splice(idx, 1);
   save();

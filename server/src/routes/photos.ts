@@ -6,6 +6,13 @@ import { listPhotos, getPhotoById, deletePhoto, updatePhotoNickname } from '../m
 import { processUpload } from '../services/photoService';
 import { verifyToken } from '../services/authService';
 
+// URL 补全：相对路径加前缀，绝对 URL（R2）保持不变
+function normalizeUrl(u: string): string {
+  if (!u) return '';
+  if (u.startsWith('http://') || u.startsWith('https://')) return u;
+  return config.siteUrl + u;
+}
+
 const router = Router();
 
 // Multer 配置
@@ -33,11 +40,10 @@ router.get('/', (req: Request, res: Response) => {
 
   const result = listPhotos({ page, pageSize, monthKey });
 
-  // 把路径补全为完整 URL
   const photos = result.photos.map((p) => ({
     ...p,
-    thumbnail_url: config.siteUrl + p.thumbnail_url,
-    original_url: config.siteUrl + p.original_url,
+    thumbnail_url: normalizeUrl(p.thumbnail_url),
+    original_url: normalizeUrl(p.original_url),
   }));
 
   res.json({
@@ -62,8 +68,8 @@ router.get('/:id', (req: Request, res: Response) => {
 
   res.json({
     ...photo,
-    thumbnail_url: config.siteUrl + photo.thumbnail_url,
-    original_url: config.siteUrl + photo.original_url,
+    thumbnail_url: normalizeUrl(photo.thumbnail_url),
+    original_url: normalizeUrl(photo.original_url),
   });
 });
 
@@ -82,8 +88,8 @@ router.post('/upload', upload.single('photo'), async (req: Request, res: Respons
 
     res.json({
       id: photo.id,
-      thumbnail_url: config.siteUrl + photo.thumbnail_url,
-      original_url: config.siteUrl + photo.original_url,
+      thumbnail_url: normalizeUrl(photo.thumbnail_url),
+      original_url: normalizeUrl(photo.original_url),
       uploaded_at: photo.uploaded_at,
     });
   } catch (err: any) {
@@ -132,8 +138,8 @@ router.patch('/:id', requireAdmin, (req: Request, res: Response) => {
   }
   res.json({
     ...photo,
-    thumbnail_url: config.siteUrl + photo.thumbnail_url,
-    original_url: config.siteUrl + photo.original_url,
+    thumbnail_url: normalizeUrl(photo.thumbnail_url),
+    original_url: normalizeUrl(photo.original_url),
   });
 });
 

@@ -9,6 +9,7 @@ import { listMonths, countByMonth } from './models/photo';
 import { verifyCredentials, verifyToken } from './services/authService';
 import { listMembers, upsertMember, removeMember } from './models/member';
 import { setCustomMenu } from './services/wechatService';
+import { getStorageUsage } from './services/r2Service';
 
 // 管理员鉴权中间件
 function requireAdmin(req: express.Request, res: express.Response, next: express.NextFunction) {
@@ -26,7 +27,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 静态文件：上传的图片
+// 静态文件：本地图片（兼容过渡期，R2 启用后由 R2 直链提供）
 app.use('/uploads', express.static(config.uploadDir));
 
 // ── 路由 ────────────────────────────────────────
@@ -95,6 +96,16 @@ app.post('/api/admin/set-menu', requireAdmin, async (_req, res) => {
   try {
     await setCustomMenu();
     res.json({ success: true, message: '菜单已发布' });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 存储用量查询（管理员）
+app.get('/api/admin/storage', requireAdmin, async (_req, res) => {
+  try {
+    const usage = await getStorageUsage();
+    res.json(usage);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

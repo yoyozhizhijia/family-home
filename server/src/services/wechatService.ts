@@ -1,11 +1,8 @@
 import crypto from 'crypto';
 import { parseStringPromise } from 'xml2js';
 import axios from 'axios';
-import fs from 'fs';
-import path from 'path';
-import sharp from 'sharp';
 import { config } from '../config';
-import { insertPhoto } from '../models/photo';
+import { processImageBuffer } from './photoService';
 
 // ── Access Token 缓存 ───────────────────────────
 let accessToken: string | null = null;
@@ -125,7 +122,7 @@ async function downloadImage(url: string): Promise<Buffer> {
   return Buffer.from(response.data);
 }
 
-/** 处理图片消息：下载 → 压缩 → 存缩略图 → 入库 */
+/** 处理图片消息：下载 → R2 上传 → 入库 */
 export async function handleImageMessage(
   msg: WechatMessage,
   nickname?: string,
@@ -139,47 +136,17 @@ export async function handleImageMessage(
   if (msg.picUrl) {
     imageBuffer = await downloadImage(msg.picUrl);
   } else if (msg.mediaId) {
-    // 如有 access_token 可调用素材接口下载，此处暂用 picUrl
     throw new Error('需要 access_token 下载临时素材，请使用 picUrl');
   } else {
     throw new Error('消息中没有图片 URL');
   }
 
-  // 生成文件名
-  const ts = Date.now();
-  const fileName = `${ts}_${msg.fromUserName}`;
-  const originalFileName = `${fileName}.jpg`;
-  const thumbnailFileName = `${fileName}_thumb.jpg`;
-
-  const uploadDir = config.uploadDir;
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-  }
-
-  // 原图保存
-  const originalPath = path.join(uploadDir, originalFileName);
-  fs.writeFileSync(originalPath, imageBuffer);
-
-  // 用 sharp 获取尺寸并生成缩略图
-  const metadata = await sharp(imageBuffer).metadata();
-  const thumbnailPath = path.join(uploadDir, thumbnailFileName);
-
-  await sharp(imageBuffer)
-    .resize(config.thumbnailWidth, undefined, { fit: 'inside', withoutEnlargement: true })
-    .jpeg({ quality: 80 })
-    .toFile(thumbnailPath);
-
-  // 入库
-  const record = insertPhoto({
-    originalPath,
-    thumbnailPath,
-    originalUrl: `/uploads/${originalFileName}`,
-    thumbnailUrl: `/uploads/${thumbnailFileName}`,
-    uploaderOpenId: msg.fromUserName,
-    uploaderNickname: nickname || '家人',
-    width: metadata.width || 0,
-    height: metadata.height || 0,
-  });
+  // 处理 + 上传 R2
+  const record = await processImageBuffer(
+    imageBuffer,
+    msg.fromUserName,
+    nickname || '家人',
+  );
 
   return {
     id: record.id,

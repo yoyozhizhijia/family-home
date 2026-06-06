@@ -4,6 +4,7 @@ import PhotoWall from '../components/PhotoWall';
 import UploadButton from '../components/UploadButton';
 import AdminPanel from '../components/AdminPanel';
 import MemberManager from '../components/MemberManager';
+import StorageBadge from '../components/StorageBadge';
 import { usePhotos } from '../hooks/usePhotos';
 import { useAdmin } from '../hooks/useAdmin';
 import type { Photo } from '../hooks/usePhotos';
@@ -107,6 +108,7 @@ export default function HomePage() {
               >
                 👨‍👩‍👧‍👦 成员
               </button>
+              <StorageBadge authedFetch={admin.authedFetch} />
               <button
                 onClick={admin.logout}
                 className="px-3 py-1.5 text-xs rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition"
