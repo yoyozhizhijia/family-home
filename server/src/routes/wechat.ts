@@ -48,10 +48,19 @@ router.post('/callback', async (req: Request, res: Response) => {
 
       console.log(`[微信] 收到消息: MsgType=${msg.msgType}, From=${msg.fromUserName}`);
 
-      // 点击菜单「怎么用」→ 回复使用说明
-      if (msg.msgType === 'event' && msg.event === 'CLICK' && msg.eventKey === 'HELP') {
+      // ── 菜单点击事件 ──────────────────────────────
+      if (msg.msgType === 'event' && msg.event === 'CLICK') {
         res.type('text/xml');
-        res.send(helpReplyXml(msg.fromUserName, msg.toUserName));
+        if (msg.eventKey === 'HELP') {
+          res.send(helpReplyXml(msg.fromUserName, msg.toUserName));
+        } else if (msg.eventKey === 'UPLOAD') {
+          res.send(uploadHintReplyXml(msg.fromUserName, msg.toUserName));
+        } else if (msg.eventKey === 'JOIN') {
+          res.send(joinHintReplyXml(msg.fromUserName, msg.toUserName));
+        } else {
+          // 未知菜单，回欢迎
+          res.send(helpReplyXml(msg.fromUserName, msg.toUserName));
+        }
         return;
       }
 
@@ -156,5 +165,27 @@ function textHintReplyXml(from: string, to: string): string {
 <CreateTime>${now}</CreateTime>
 <MsgType>text</MsgType>
 <Content>😊 直接发送照片就可以上传到家庭照片墙啦～\n\n点底部菜单「🏡 家庭时光」查看所有照片</Content>
+</xml>`;
+}
+
+function uploadHintReplyXml(from: string, to: string): string {
+  const now = Math.floor(Date.now() / 1000);
+  return `<xml>
+<ToUserName>${from}</ToUserName>
+<FromUserName>${to}</FromUserName>
+<CreateTime>${now}</CreateTime>
+<MsgType>text</MsgType>
+<Content>📷 直接发送照片到对话框，就能自动保存到我们的家庭照片墙！</Content>
+</xml>`;
+}
+
+function joinHintReplyXml(from: string, to: string): string {
+  const now = Math.floor(Date.now() / 1000);
+  return `<xml>
+<ToUserName>${from}</ToUserName>
+<FromUserName>${to}</FromUserName>
+<CreateTime>${now}</CreateTime>
+<MsgType>text</MsgType>
+<Content>🔑 发送暗号即可加入家庭，之后发照片自动上墙！\n\n（暗号由管理员告知家人）</Content>
 </xml>`;
 }
