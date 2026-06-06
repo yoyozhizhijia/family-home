@@ -92,9 +92,9 @@ export default function MemberManager({ authedFetch, onClose }: MemberManagerPro
         className="bg-white rounded-2xl shadow-2xl p-6 w-[420px] max-w-[92vw] max-h-[80vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-lg font-bold text-amber-800 mb-1">👨‍👩‍👧‍👦 家庭成员管理</h2>
+        <h2 className="text-lg font-bold text-amber-800 mb-1">👨‍👩‍👧‍👦 家庭成员</h2>
         <p className="text-xs text-amber-500 mb-4">
-          只有列表中的成员才能通过公众号发送照片。OpenID 可从服务端日志中获取。
+          添加后可发照片上墙。暗号加入的成员会自动出现在这里。
         </p>
 
         {/* 添加表单 */}
@@ -103,14 +103,14 @@ export default function MemberManager({ authedFetch, onClose }: MemberManagerPro
             type="text"
             value={openid}
             onChange={(e) => setOpenid(e.target.value)}
-            placeholder="成员 OpenID"
+            placeholder="OpenID（自动填入）"
             className="flex-1 px-3 py-2 border border-amber-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-400"
           />
           <input
             type="text"
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
-            placeholder="昵称（如：妈妈）"
+            placeholder="昵称"
             className="w-24 px-3 py-2 border border-amber-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-amber-400"
           />
           <button

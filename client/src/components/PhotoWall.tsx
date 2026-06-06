@@ -39,11 +39,12 @@ export default function PhotoWall({ photos, hasMore, loading, onLoadMore, isAdmi
   if (photos.length === 0 && !loading) {
     return (
       <div className="text-center py-20 text-amber-500">
-        <div className="text-6xl mb-4">📷</div>
-        <p className="text-lg">还没有照片，快来上传第一张吧！</p>
-        <p className="text-sm mt-2 text-amber-400">
-          通过微信公众号发送照片，或点击下方按钮上传
+        <div className="text-7xl mb-5">📷</div>
+        <p className="text-xl font-medium text-amber-700 mb-2">欢迎来到家庭时光</p>
+        <p className="text-sm text-amber-400">
+          向公众号发送照片，或用右下角按钮上传
         </p>
+        <p className="text-xs mt-4 text-amber-300">记录每一个温暖瞬间 💛</p>
       </div>
     );
   }

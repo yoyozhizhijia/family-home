@@ -1,0 +1,2 @@
+<!-- 家庭时光 - 小程序首页（web-view 嵌入 H5 照片墙） -->
+<web-view src="https://family-home.onrender.com/" bindmessage="onMessage" bindload="onLoad" binderror="onError" />

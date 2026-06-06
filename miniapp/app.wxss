@@ -1,0 +1,4 @@
+/* 小程序全局样式 */
+page {
+  background: #fef7ed;
+}
