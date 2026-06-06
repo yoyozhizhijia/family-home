@@ -34,7 +34,7 @@ export async function getAccessToken(): Promise<string> {
 }
 
 /** 通过 API 设置自定义菜单 */
-export async function setCustomMenu(): Promise<void> {
+export async function setCustomMenu(): Promise<{ errcode: number; errmsg: string }> {
   const token = await getAccessToken();
   const menu = {
     button: [
@@ -57,11 +57,14 @@ export async function setCustomMenu(): Promise<void> {
     { timeout: 15000 },
   );
 
+  console.log('[微信] 菜单创建响应:', JSON.stringify(res.data));
+
   if (res.data.errcode !== 0) {
-    console.error('[微信] 菜单创建失败:', res.data.errmsg);
-  } else {
-    console.log('[微信] 自定义菜单已设置 ✅');
+    throw new Error(`微信返回错误: ${res.data.errmsg} (errcode=${res.data.errcode})`);
   }
+
+  console.log('[微信] 自定义菜单已发布 ✅');
+  return res.data;
 }
 
 /** 验证微信签名（公众号首次接入校验 & 每次消息校验） */
