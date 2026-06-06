@@ -67,6 +67,16 @@ export async function setCustomMenu(): Promise<{ errcode: number; errmsg: string
   return res.data;
 }
 
+/** 查询当前自定义菜单 */
+export async function getMenuInfo(): Promise<any> {
+  const token = await getAccessToken();
+  const res = await axios.get(
+    `https://api.weixin.qq.com/cgi-bin/get_current_selfmenu_info?access_token=${token}`,
+    { timeout: 15000 },
+  );
+  return res.data;
+}
+
 /** 验证微信签名（公众号首次接入校验 & 每次消息校验） */
 export function verifySignature(
   signature: string,

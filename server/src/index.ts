@@ -8,7 +8,7 @@ import photoRoutes from './routes/photos';
 import { listMonths, countByMonth, dataInitPromise } from './models/photo';
 import { verifyCredentials, verifyToken } from './services/authService';
 import { listMembers, upsertMember, removeMember, memberInitPromise } from './models/member';
-import { setCustomMenu } from './services/wechatService';
+import { setCustomMenu, getMenuInfo } from './services/wechatService';
 import { getStorageUsage } from './services/cloudinaryService';
 
 // 管理员鉴权中间件
@@ -105,10 +105,17 @@ app.get('/api/health', (_req, res) => {
 // 管理员设置公众号菜单
 app.post('/api/admin/set-menu', requireAdmin, async (_req, res) => {
   try {
-    await setCustomMenu();
-    res.json({ success: true, message: '菜单已发布' });
+    const result = await setCustomMenu();
+    const info = await getMenuInfo();
+    res.json({ 
+      success: true, 
+      message: '菜单已发布',
+      wechat_errcode: result.errcode,
+      has_menu: !!(info.selfmenu_info?.button?.length > 0),
+      button_count: info.selfmenu_info?.button?.length || 0,
+      raw: info,
+    });
   } catch (err: any) {
-    // 返回更详细的错误便于排查
     res.status(500).json({ 
       error: err.message,
       hint: config.wechat.appId ? 'AppID已配置' : 'AppID缺失',
