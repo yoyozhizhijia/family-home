@@ -11,6 +11,7 @@ export const config = {
   siteUrl: process.env.SITE_URL || 'http://localhost:3000',
   accessPassword: process.env.ACCESS_PASSWORD || '',
   adminUsername: process.env.ADMIN_USERNAME || 'admin',
+  joinPassphrase: process.env.JOIN_PASSPHRASE || '',
 
   wechat: {
     token: (process.env.WECHAT_TOKEN || '').trim(),

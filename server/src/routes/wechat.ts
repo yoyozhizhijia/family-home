@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { verifySignature, parseMessage, handleImageMessage } from '../services/wechatService';
-import { isMember, getMemberNickname } from '../models/member';
+import { isMember, getMemberNickname, upsertMember } from '../models/member';
+import { config } from '../config';
 
 const router = Router();
 
@@ -41,20 +42,33 @@ router.post('/callback', async (req: Request, res: Response) => {
       const msg = await parseMessage(xml);
       if (!msg) {
         console.log('[微信] 消息解析失败');
-        res.send('success'); // 返回 success 避免微信重试
+        res.send('success');
         return;
       }
 
       console.log(`[微信] 收到消息: MsgType=${msg.msgType}, From=${msg.fromUserName}`);
 
-      // 白名单检查：只允许家庭成员发图
-      if (!isMember(msg.fromUserName)) {
-        console.log(`[微信] 非家庭成员 (${msg.fromUserName})，已忽略`);
+      // 检测暗号：文字消息匹配暗号 → 自动加入白名单
+      if (
+        msg.msgType === 'text' &&
+        msg.content &&
+        config.joinPassphrase &&
+        msg.content.trim() === config.joinPassphrase
+      ) {
+        upsertMember(msg.fromUserName, '新家人');
+        console.log(`[微信] 🎉 暗号匹配! ${msg.fromUserName} 已自动加入家庭成员`);
         res.send('success');
         return;
       }
 
-      // 仅处理图片消息
+      // 白名单检查：只允许家庭成员发图
+      if (!isMember(msg.fromUserName)) {
+        console.log(`[微信] 非家庭成员 (${msg.fromUserName})，已忽略。可发送暗号加入。`);
+        res.send('success');
+        return;
+      }
+
+      // 处理图片消息
       if (msg.msgType === 'image') {
         const nickname = getMemberNickname(msg.fromUserName) || '家人';
         const result = await handleImageMessage(msg, nickname);
@@ -63,11 +77,10 @@ router.post('/callback', async (req: Request, res: Response) => {
         console.log('[微信] 收到文字消息，暂不处理');
       }
 
-      // 必须返回 'success' 字符串，否则微信会重试
       res.send('success');
     } catch (err) {
       console.error('[微信] 处理消息出错:', err);
-      res.send('success'); // 依然返回 success，避免微信反复重试
+      res.send('success');
     }
   });
 });

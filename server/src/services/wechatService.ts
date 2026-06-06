@@ -34,6 +34,7 @@ export async function parseMessage(xml: string): Promise<WechatMessage | null> {
       msgId: msg.MsgId,
       picUrl: msg.PicUrl,
       mediaId: msg.MediaId,
+      content: msg.Content,
     };
   } catch {
     return null;
@@ -48,6 +49,7 @@ export interface WechatMessage {
   msgId?: string;
   picUrl?: string;
   mediaId?: string;
+  content?: string;
 }
 
 /** 从微信服务器下载图片 */
