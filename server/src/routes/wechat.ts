@@ -82,8 +82,14 @@ router.post('/callback', async (req: Request, res: Response) => {
         const nickname = getMemberNickname(msg.fromUserName) || '家人';
         const result = await handleImageMessage(msg, nickname);
         console.log(`[微信] 图片已保存: ${result.id}`);
+        res.type('text/xml');
+        res.send(photoSavedReplyXml(msg.fromUserName, msg.toUserName, nickname));
+        return;
       } else if (msg.msgType === 'text') {
-        console.log('[微信] 收到文字消息，暂不处理');
+        // 文字消息提示发图
+        res.type('text/xml');
+        res.send(textHintReplyXml(msg.fromUserName, msg.toUserName));
+        return;
       }
 
       res.send('success');
@@ -127,5 +133,36 @@ function notMemberReplyXml(from: string, to: string): string {
 <CreateTime>${now}</CreateTime>
 <MsgType>text</MsgType>
 <Content>👋 你好！你还不是家庭成员，无法上传照片。\n\n请发送暗号加入我们大家庭～</Content>
+</xml>`;
+}
+
+function photoSavedReplyXml(from: string, to: string, nickname: string): string {
+  const now = Math.floor(Date.now() / 1000);
+  const msgs = [
+    `📷 收到！${nickname}的这张美好瞬间已珍藏到家庭时光 ❤️`,
+    `✨ 太棒了！${nickname}的照片已经安全存入我们的家庭相册啦～`,
+    `💕 记录下来了！${nickname}的回忆又添了一页，去照片墙看看吧`,
+    `🌷 收到啦！${nickname}的温暖瞬间已上墙，点「家庭时光」查看`,
+    `🎞️ 咔嚓！${nickname}的时光碎片已保存，每一张都值得珍藏`,
+    `🏡 ${nickname}拍得真好！照片已加入我们的家庭记忆 ✨`,
+  ];
+  const content = msgs[Math.floor(Math.random() * msgs.length)];
+  return `<xml>
+<ToUserName>${from}</ToUserName>
+<FromUserName>${to}</FromUserName>
+<CreateTime>${now}</CreateTime>
+<MsgType>text</MsgType>
+<Content>${content}</Content>
+</xml>`;
+}
+
+function textHintReplyXml(from: string, to: string): string {
+  const now = Math.floor(Date.now() / 1000);
+  return `<xml>
+<ToUserName>${from}</ToUserName>
+<FromUserName>${to}</FromUserName>
+<CreateTime>${now}</CreateTime>
+<MsgType>text</MsgType>
+<Content>😊 直接发送照片就可以上传到家庭照片墙啦～\n\n点底部菜单「🏡 家庭时光」查看所有照片</Content>
 </xml>`;
 }
