@@ -97,7 +97,12 @@ app.post('/api/admin/set-menu', requireAdmin, async (_req, res) => {
     await setCustomMenu();
     res.json({ success: true, message: '菜单已发布' });
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    // 返回更详细的错误便于排查
+    res.status(500).json({ 
+      error: err.message,
+      hint: config.wechat.appId ? 'AppID已配置' : 'AppID缺失',
+      secret: config.wechat.appSecret ? '已配置' : '缺失',
+    });
   }
 });
 
