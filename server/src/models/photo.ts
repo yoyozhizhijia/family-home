@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { config } from '../config';
-import { deleteFromR2 } from '../services/r2Service';
+import { deleteFromCloudinary } from '../services/cloudinaryService';
 
 export interface PhotoRecord {
   id: string;
@@ -143,12 +143,9 @@ export function deletePhoto(id: string): boolean {
 
   const photo = photos[idx];
 
-  // 从 R2 删除文件（key 存在 original_path / thumbnail_path 中）
+  // 从 Cloudinary 删除（public_id 存在 original_path 中）
   if (photo.original_path) {
-    deleteFromR2(photo.original_path).catch(() => {});
-  }
-  if (photo.thumbnail_path) {
-    deleteFromR2(photo.thumbnail_path).catch(() => {});
+    deleteFromCloudinary(photo.original_path).catch(() => {});
   }
 
   photos.splice(idx, 1);

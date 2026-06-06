@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 
 interface StorageInfo {
+  totalMB: string;
   totalGB: string;
   percentUsed: string;
   alertGB: number;
   isAlerting: boolean;
-  objectCount: number;
+  plan: string;
+  credits: number;
 }
 
 interface StorageBadgeProps {
@@ -29,11 +31,12 @@ export default function StorageBadge({ authedFetch }: StorageBadgeProps) {
   return (
     <button
       onClick={() => alert(
-        `📦 存储用量：${info.totalGB} GB\n` +
+        `📦 存储用量：${info.totalMB} MB（${info.totalGB} GB）\n` +
         `使用率：${info.percentUsed}%\n` +
-        `文件数：${info.objectCount}\n` +
+        `当前方案：${info.plan}\n` +
         `告警阈值：${info.alertGB} GB\n\n` +
-        `${isWarning ? '⚠️ 已超过 90%，建议扩容！' : '🟢 存储空间充足'}`
+        `${isWarning ? '⚠️ 建议留意空间扩容！' : '🟢 存储空间充足'}\n\n` +
+        `Cloudinary 免费 25GB，超出后可按需升级`
       )}
       className={`px-3 py-1.5 text-xs rounded-full transition ${
         isWarning

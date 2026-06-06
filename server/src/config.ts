@@ -26,8 +26,14 @@ export const config = {
     secretAccessKey: (process.env.R2_SECRET_ACCESS_KEY || '').trim(),
     bucketName: (process.env.R2_BUCKET_NAME || 'family-home').trim(),
     publicUrl: (process.env.R2_PUBLIC_URL || '').trim(),
-    // 存储容量告警阈值 (GB)，达到后提示扩容
     storageAlertGB: parseFloat(process.env.R2_STORAGE_ALERT_GB || '9'),
+  },
+
+  cloudinary: {
+    cloudName: (process.env.CLOUDINARY_CLOUD_NAME || '').trim(),
+    apiKey: (process.env.CLOUDINARY_API_KEY || '').trim(),
+    apiSecret: (process.env.CLOUDINARY_API_SECRET || '').trim(),
+    storageAlertGB: parseFloat(process.env.CLOUDINARY_STORAGE_ALERT_GB || '22.5'),
   },
 
   db: {

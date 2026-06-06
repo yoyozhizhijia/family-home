@@ -9,7 +9,7 @@ import { listMonths, countByMonth } from './models/photo';
 import { verifyCredentials, verifyToken } from './services/authService';
 import { listMembers, upsertMember, removeMember } from './models/member';
 import { setCustomMenu } from './services/wechatService';
-import { getStorageUsage } from './services/r2Service';
+import { getStorageUsage } from './services/cloudinaryService';
 
 // 管理员鉴权中间件
 function requireAdmin(req: express.Request, res: express.Response, next: express.NextFunction) {
