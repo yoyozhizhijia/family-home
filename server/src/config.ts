@@ -13,10 +13,10 @@ export const config = {
   adminUsername: process.env.ADMIN_USERNAME || 'admin',
 
   wechat: {
-    token: process.env.WECHAT_TOKEN || '',
-    appId: process.env.WECHAT_APP_ID || '',
-    appSecret: process.env.WECHAT_APP_SECRET || '',
-    encodingAESKey: process.env.WECHAT_ENCODING_AES_KEY || '',
+    token: (process.env.WECHAT_TOKEN || '').trim(),
+    appId: (process.env.WECHAT_APP_ID || '').trim(),
+    appSecret: (process.env.WECHAT_APP_SECRET || '').trim(),
+    encodingAESKey: (process.env.WECHAT_ENCODING_AES_KEY || '').trim(),
   },
 
   db: {
