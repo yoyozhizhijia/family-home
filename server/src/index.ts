@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
+import fs from 'fs';
 import { config } from './config';
 import wechatRoutes from './routes/wechat';
 import photoRoutes from './routes/photos';
@@ -89,7 +90,10 @@ app.get('/api/health', (_req, res) => {
 });
 
 // ── 生产环境：托管前端静态文件 ─────────────────
-const clientDist = path.resolve(__dirname, '../../client/dist');
+// Docker 容器和本地开发的目录结构不同，同时兼容两者
+const clientDistDocker = path.resolve(__dirname, '../client/dist');
+const clientDistLocal = path.resolve(__dirname, '../../client/dist');
+const clientDist = fs.existsSync(clientDistDocker) ? clientDistDocker : clientDistLocal;
 app.use(express.static(clientDist));
 app.get('*', (_req, res) => {
   res.sendFile(path.join(clientDist, 'index.html'));
