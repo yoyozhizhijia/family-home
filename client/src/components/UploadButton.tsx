@@ -6,44 +6,56 @@ interface UploadButtonProps {
 
 export default function UploadButton({ onUploaded }: UploadButtonProps) {
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const uploadFile = async (file: File): Promise<boolean> => {
+    const formData = new FormData();
+    formData.append('photo', file);
+    const res = await fetch('/api/photos/upload', {
+      method: 'POST',
+      body: formData,
+    });
+    return res.ok;
+  };
+
+  const handleFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
     setUploading(true);
     setMessage(null);
 
-    try {
-      const formData = new FormData();
-      formData.append('photo', file);
+    let success = 0;
+    let fail = 0;
+    const total = files.length;
 
-      const res = await fetch('/api/photos/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || '上传失败');
+    for (let i = 0; i < files.length; i++) {
+      setProgress(`${i + 1} / ${total}`);
+      try {
+        const ok = await uploadFile(files[i]);
+        if (ok) success++;
+        else fail++;
+      } catch {
+        fail++;
       }
+    }
 
-      setMessage('上传成功！');
-      onUploaded();
+    setUploading(false);
+    setProgress(null);
 
-      // 3 秒后清除提示
-      setTimeout(() => setMessage(null), 3000);
-    } catch (err: any) {
-      setMessage(err.message || '上传失败');
-      setTimeout(() => setMessage(null), 5000);
-    } finally {
-      setUploading(false);
-      // 清空 input 以允许重复选同一文件
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+    if (fail === 0) {
+      setMessage(`✅ ${success} 张照片上传成功！`);
+    } else {
+      setMessage(`⚠️ 成功 ${success} 张，失败 ${fail} 张`);
+    }
+
+    onUploaded();
+    setTimeout(() => setMessage(null), 3000);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -53,9 +65,11 @@ export default function UploadButton({ onUploaded }: UploadButtonProps) {
       {message && (
         <div
           className={`px-4 py-2 rounded-lg shadow text-sm font-medium ${
-            message.includes('成功')
+            message.startsWith('✅')
               ? 'bg-green-500 text-white'
-              : 'bg-red-500 text-white'
+              : message.startsWith('⚠️')
+                ? 'bg-amber-500 text-white'
+                : 'bg-red-500 text-white'
           }`}
         >
           {message}
@@ -77,7 +91,7 @@ export default function UploadButton({ onUploaded }: UploadButtonProps) {
         {uploading ? (
           <>
             <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            上传中...
+            {progress || '上传中...'}
           </>
         ) : (
           <>
@@ -89,7 +103,8 @@ export default function UploadButton({ onUploaded }: UploadButtonProps) {
           ref={fileInputRef}
           type="file"
           accept="image/*"
-          onChange={handleFile}
+          multiple
+          onChange={handleFiles}
           className="hidden"
           disabled={uploading}
         />

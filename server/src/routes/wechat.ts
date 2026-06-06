@@ -138,15 +138,7 @@ function notMemberReplyXml(from: string, to: string): string {
 
 function photoSavedReplyXml(from: string, to: string, nickname: string): string {
   const now = Math.floor(Date.now() / 1000);
-  const msgs = [
-    `📷 收到！${nickname}的这张美好瞬间已珍藏到家庭时光 ❤️`,
-    `✨ 太棒了！${nickname}的照片已经安全存入我们的家庭相册啦～`,
-    `💕 记录下来了！${nickname}的回忆又添了一页，去照片墙看看吧`,
-    `🌷 收到啦！${nickname}的温暖瞬间已上墙，点「家庭时光」查看`,
-    `🎞️ 咔嚓！${nickname}的时光碎片已保存，每一张都值得珍藏`,
-    `🏡 ${nickname}拍得真好！照片已加入我们的家庭记忆 ✨`,
-  ];
-  const content = msgs[Math.floor(Math.random() * msgs.length)];
+  const content = `🎞️ 咔嚓！${nickname}的时光碎片已保存，每一张都值得珍藏`;
   return `<xml>
 <ToUserName>${from}</ToUserName>
 <FromUserName>${to}</FromUserName>
