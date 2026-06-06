@@ -88,6 +88,16 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
 });
 
+// 临时诊断（排查微信配置问题，确认后可删除）
+app.get('/api/debug', (_req, res) => {
+  res.json({
+    token_set: !!config.wechat.token,
+    token_length: config.wechat.token.length,
+    appid_set: !!config.wechat.appId,
+    site_url: config.siteUrl,
+  });
+});
+
 // ── 生产环境：托管前端静态文件 ─────────────────
 const clientDist = path.resolve(__dirname, '../../client/dist');
 app.use(express.static(clientDist));
