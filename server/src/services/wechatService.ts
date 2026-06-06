@@ -7,6 +7,66 @@ import sharp from 'sharp';
 import { config } from '../config';
 import { insertPhoto } from '../models/photo';
 
+// ── Access Token 缓存 ───────────────────────────
+let accessToken: string | null = null;
+let tokenExpiresAt: number = 0;
+
+/** 获取微信公众号 access_token */
+export async function getAccessToken(): Promise<string> {
+  if (accessToken && Date.now() < tokenExpiresAt - 300000) {
+    return accessToken;
+  }
+
+  const res = await axios.get('https://api.weixin.qq.com/cgi-bin/token', {
+    params: {
+      grant_type: 'client_credential',
+      appid: config.wechat.appId,
+      secret: config.wechat.appSecret,
+    },
+    timeout: 15000,
+  });
+
+  if (res.data.errcode) {
+    throw new Error(`获取 access_token 失败: ${res.data.errmsg}`);
+  }
+
+  accessToken = res.data.access_token;
+  tokenExpiresAt = Date.now() + (res.data.expires_in || 7200) * 1000;
+  console.log('[微信] access_token 已刷新');
+  return accessToken!;
+}
+
+/** 通过 API 设置自定义菜单 */
+export async function setCustomMenu(): Promise<void> {
+  const token = await getAccessToken();
+  const menu = {
+    button: [
+      {
+        type: 'view',
+        name: '🏡 家庭时光',
+        url: config.siteUrl,
+      },
+      {
+        type: 'click',
+        name: '📷 怎么用',
+        key: 'HELP',
+      },
+    ],
+  };
+
+  const res = await axios.post(
+    `https://api.weixin.qq.com/cgi-bin/menu/create?access_token=${token}`,
+    menu,
+    { timeout: 15000 },
+  );
+
+  if (res.data.errcode !== 0) {
+    console.error('[微信] 菜单创建失败:', res.data.errmsg);
+  } else {
+    console.log('[微信] 自定义菜单已设置 ✅');
+  }
+}
+
 /** 验证微信签名（公众号首次接入校验 & 每次消息校验） */
 export function verifySignature(
   signature: string,
@@ -35,6 +95,8 @@ export async function parseMessage(xml: string): Promise<WechatMessage | null> {
       picUrl: msg.PicUrl,
       mediaId: msg.MediaId,
       content: msg.Content,
+      event: msg.Event,
+      eventKey: msg.EventKey,
     };
   } catch {
     return null;
@@ -50,6 +112,8 @@ export interface WechatMessage {
   picUrl?: string;
   mediaId?: string;
   content?: string;
+  event?: string;
+  eventKey?: string;
 }
 
 /** 从微信服务器下载图片 */

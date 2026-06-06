@@ -48,6 +48,13 @@ router.post('/callback', async (req: Request, res: Response) => {
 
       console.log(`[微信] 收到消息: MsgType=${msg.msgType}, From=${msg.fromUserName}`);
 
+      // 点击菜单「怎么用」→ 回复使用说明
+      if (msg.msgType === 'event' && msg.event === 'CLICK' && msg.eventKey === 'HELP') {
+        res.type('text/xml');
+        res.send(helpReplyXml(msg.fromUserName, msg.toUserName));
+        return;
+      }
+
       // 检测暗号：文字消息匹配暗号 → 自动加入白名单
       if (
         msg.msgType === 'text' &&
@@ -57,14 +64,16 @@ router.post('/callback', async (req: Request, res: Response) => {
       ) {
         upsertMember(msg.fromUserName, '新家人');
         console.log(`[微信] 🎉 暗号匹配! ${msg.fromUserName} 已自动加入家庭成员`);
-        res.send('success');
+        res.type('text/xml');
+        res.send(welcomeReplyXml(msg.fromUserName, msg.toUserName));
         return;
       }
 
       // 白名单检查：只允许家庭成员发图
       if (!isMember(msg.fromUserName)) {
         console.log(`[微信] 非家庭成员 (${msg.fromUserName})，已忽略。可发送暗号加入。`);
-        res.send('success');
+        res.type('text/xml');
+        res.send(notMemberReplyXml(msg.fromUserName, msg.toUserName));
         return;
       }
 
@@ -86,3 +95,37 @@ router.post('/callback', async (req: Request, res: Response) => {
 });
 
 export default router;
+
+// ── 被动回复 XML 模板 ──────────────────────
+function helpReplyXml(from: string, to: string): string {
+  const now = Math.floor(Date.now() / 1000);
+  return `<xml>
+<ToUserName>${from}</ToUserName>
+<FromUserName>${to}</FromUserName>
+<CreateTime>${now}</CreateTime>
+<MsgType>text</MsgType>
+<Content>📷 发送照片即可上传到家庭照片墙\n\n🔑 新家人先发暗号加入\n\n🏡 点「家庭时光」查看照片墙\n\n❤️ 记录我们的美好时光</Content>
+</xml>`;
+}
+
+function welcomeReplyXml(from: string, to: string): string {
+  const now = Math.floor(Date.now() / 1000);
+  return `<xml>
+<ToUserName>${from}</ToUserName>
+<FromUserName>${to}</FromUserName>
+<CreateTime>${now}</CreateTime>
+<MsgType>text</MsgType>
+<Content>🎉 欢迎加入家庭时光！\n\n从现在开始，你发的每张照片都会自动保存到我们的家庭照片墙。\n\n点底部菜单「🏡 家庭时光」即可查看！</Content>
+</xml>`;
+}
+
+function notMemberReplyXml(from: string, to: string): string {
+  const now = Math.floor(Date.now() / 1000);
+  return `<xml>
+<ToUserName>${from}</ToUserName>
+<FromUserName>${to}</FromUserName>
+<CreateTime>${now}</CreateTime>
+<MsgType>text</MsgType>
+<Content>👋 你好！你还不是家庭成员，无法上传照片。\n\n请发送暗号加入我们大家庭～</Content>
+</xml>`;
+}

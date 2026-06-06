@@ -8,6 +8,7 @@ import photoRoutes from './routes/photos';
 import { listMonths, countByMonth } from './models/photo';
 import { verifyCredentials, verifyToken } from './services/authService';
 import { listMembers, upsertMember, removeMember } from './models/member';
+import { setCustomMenu } from './services/wechatService';
 
 // 管理员鉴权中间件
 function requireAdmin(req: express.Request, res: express.Response, next: express.NextFunction) {
@@ -89,6 +90,16 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
 });
 
+// 管理员设置公众号菜单
+app.post('/api/admin/set-menu', requireAdmin, async (_req, res) => {
+  try {
+    await setCustomMenu();
+    res.json({ success: true, message: '菜单已发布' });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── 生产环境：托管前端静态文件 ─────────────────
 // Docker 容器和本地开发的目录结构不同，同时兼容两者
 const clientDistDocker = path.resolve(__dirname, '../client/dist');
@@ -104,4 +115,11 @@ app.listen(config.port, () => {
   console.log(`🏡 家庭时光服务器已启动: http://localhost:${config.port}`);
   console.log(`   微信回调地址: ${config.siteUrl}/api/wechat/callback`);
   console.log(`   上传目录: ${config.uploadDir}`);
+
+  // 自动设置公众号菜单（有 AppSecret 才执行）
+  if (config.wechat.appSecret) {
+    setCustomMenu().catch((err) => {
+      console.error('[微信] 菜单自动设置失败:', err.message);
+    });
+  }
 });
