@@ -94,10 +94,10 @@ router.get('/:id', (req: Request, res: Response) => {
 function requireFamily(req: Request, res: Response, next: Function) {
   const token = req.headers.authorization?.replace('Bearer ', '');
   if (token && verifyToken(token)) {
-    // 管理员 token → 允许上传
     return next();
   }
   res.status(403).json({ error: '只有家庭成员才能上传照片。请先通过公众号加入家庭。' });
+  return;
 }
 
 /**
