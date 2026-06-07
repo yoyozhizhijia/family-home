@@ -122,6 +122,21 @@ app.get('/api/health/deep', (req, res) => {
   });
 });
 
+// 管理员手动触发备份（诊断用）
+app.post('/api/admin/force-backup', requireAdmin, async (_req, res) => {
+  try {
+    const { backupJson } = require('./services/cloudinaryService');
+    const { countPhotos, listPhotos } = require('./models/photo');
+    const photos = listPhotos({ pageSize: 9999 }).photos;
+    const url = await backupJson('photos', photos);
+    const members = require('./models/member').listMembers();
+    await backupJson('members', members);
+    res.json({ success: true, photos_count: photos.length, members_count: members.length, url });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message, stack: err.stack });
+  }
+});
+
 // 管理员设置公众号菜单
 app.post('/api/admin/set-menu', requireAdmin, async (_req, res) => {
   try {
