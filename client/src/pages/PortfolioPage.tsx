@@ -63,7 +63,10 @@ export default function PortfolioPage() {
     }
 
     setUploading(false);
-    setMessage(fail === 0 ? `✅ ${success} 张作品上传成功！` : `⚠️ 成功 ${success} 张，失败 ${fail} 张`);
+    setMessage(fail === 0
+      ? `✅ ${success} 张作品上传成功！\n📱 照片墙：https://family-home.onrender.com`
+      : `⚠️ 成功 ${success} 张，失败 ${fail} 张`
+    );
     refresh();
     setTimeout(() => setMessage(null), 3000);
     if (fileInputRef.current) fileInputRef.current.value = '';

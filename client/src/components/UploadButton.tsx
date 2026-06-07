@@ -46,7 +46,7 @@ export default function UploadButton({ onUploaded }: UploadButtonProps) {
     setProgress(null);
 
     if (fail === 0) {
-      setMessage(`✅ ${success} 张照片上传成功！`);
+      setMessage(`✅ ${success} 张照片上传成功！\n查看照片墙：https://family-home.onrender.com`);
     } else {
       setMessage(`⚠️ 成功 ${success} 张，失败 ${fail} 张`);
     }
