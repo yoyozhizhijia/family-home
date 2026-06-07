@@ -69,11 +69,14 @@ export default function PhotoWall({ photos, hasMore, loading, onLoadMore, isAdmi
 
             {/* 普通悬浮信息 */}
             {!isAdmin && (
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none flex items-end justify-between">
                 <p className="text-white text-xs">
                   {photo.uploader_nickname} · {formatDate(photo.uploaded_at)}
                   {photo.category && <span className="ml-1 text-white/70">· {categoryLabel(photo.category)}</span>}
                 </p>
+                {(photo.comments?.length ?? 0) > 0 && (
+                  <span className="text-white/80 text-[10px] bg-white/20 px-1.5 py-0.5 rounded-full">💬 {photo.comments?.length}</span>
+                )}
               </div>
             )}
 
@@ -106,11 +109,14 @@ export default function PhotoWall({ photos, hasMore, loading, onLoadMore, isAdmi
                   </button>
                 </div>
                 {/* 底部信息始终可见 */}
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent p-2">
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent p-2 flex items-end justify-between">
                   <p className="text-white text-[10px]">
                     {photo.uploader_nickname} · {formatDate(photo.uploaded_at)}
                     {photo.category && <span className="ml-1 text-white/70">· {categoryLabel(photo.category)}</span>}
                   </p>
+                  {(photo.comments?.length ?? 0) > 0 && (
+                    <span className="text-white/80 text-[10px] bg-white/20 px-1.5 py-0.5 rounded-full">💬 {photo.comments?.length ?? 0}</span>
+                  )}
                 </div>
               </div>
             )}
