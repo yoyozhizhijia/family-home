@@ -37,8 +37,9 @@ router.get('/', (req: Request, res: Response) => {
   const page = parseInt(req.query.page as string) || 1;
   const pageSize = parseInt(req.query.pageSize as string) || 24;
   const monthKey = req.query.month as string | undefined;
+  const category = req.query.category as string | undefined;
 
-  const result = listPhotos({ page, pageSize, monthKey });
+  const result = listPhotos({ page, pageSize, monthKey, category });
 
   const photos = result.photos.map((p) => ({
     ...p,
@@ -84,7 +85,8 @@ router.post('/upload', upload.single('photo'), async (req: Request, res: Respons
       return;
     }
 
-    const photo = await processUpload(req.file);
+    const category = (req.body.category as string) || '';
+    const photo = await processUpload(req.file, category);
 
     res.json({
       id: photo.id,

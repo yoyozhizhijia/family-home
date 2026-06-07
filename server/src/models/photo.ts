@@ -15,6 +15,7 @@ export interface PhotoRecord {
   month_key: string;
   width: number;
   height: number;
+  category: string;  // 'yoyo' | 'zhizhi' | 'everyone' | '' 作品集分类
 }
 
 const DATA_FILE = config.db.path;
@@ -83,6 +84,7 @@ export function insertPhoto(params: {
   uploaderNickname?: string;
   width?: number;
   height?: number;
+  category?: string;
 }): PhotoRecord {
   const now = new Date();
   const record: PhotoRecord = {
@@ -97,6 +99,7 @@ export function insertPhoto(params: {
     month_key: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`,
     width: params.width || 0,
     height: params.height || 0,
+    category: params.category || '',
   };
 
   photos.unshift(record); // 最新在前
@@ -114,6 +117,7 @@ export interface PhotoListParams {
   pageSize?: number;
   monthKey?: string;
   uploaderOpenId?: string;
+  category?: string;
 }
 
 /** 分页列表 */
@@ -125,6 +129,14 @@ export function listPhotos(params: PhotoListParams = {}): { photos: PhotoRecord[
   }
   if (params.uploaderOpenId) {
     filtered = filtered.filter((p) => p.uploader_openid === params.uploaderOpenId);
+  }
+  if (params.category !== undefined) {
+    if (params.category === '') {
+      // 筛选无分类的普通照片
+      filtered = filtered.filter((p) => !p.category || p.category === '');
+    } else {
+      filtered = filtered.filter((p) => p.category === params.category);
+    }
   }
 
   const total = filtered.length;

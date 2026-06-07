@@ -9,6 +9,7 @@ export interface Photo {
   month_key: string;
   width: number;
   height: number;
+  category: string;
 }
 
 interface UsePhotosReturn {
@@ -21,7 +22,7 @@ interface UsePhotosReturn {
   refresh: () => void;
 }
 
-export function usePhotos(monthKey?: string): UsePhotosReturn {
+export function usePhotos(monthKey?: string, category?: string): UsePhotosReturn {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -39,6 +40,7 @@ export function usePhotos(monthKey?: string): UsePhotosReturn {
           pageSize: '24',
         });
         if (monthKey) params.set('month', monthKey);
+        if (category !== undefined) params.set('category', category);
 
         const res = await fetch(`/api/photos?${params}`);
         if (!res.ok) throw new Error('加载失败');
@@ -56,10 +58,10 @@ export function usePhotos(monthKey?: string): UsePhotosReturn {
         setLoading(false);
       }
     },
-    [monthKey],
+    [monthKey, category],
   );
 
-  // 月份变化时重新加载
+  // 参数变化时重新加载
   useEffect(() => {
     setPhotos([]);
     setPage(1);
