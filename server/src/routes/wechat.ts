@@ -215,11 +215,11 @@ function todayStatsReplyXml(from: string, to: string): string {
 
 function wrapTextXml(from: string, to: string, ts: number, content: string): string {
   return `<xml>
-<ToUserName>${from}</ToUserName>
-<FromUserName>${to}</FromUserName>
+<ToUserName><![CDATA[${from}]]></ToUserName>
+<FromUserName><![CDATA[${to}]]></FromUserName>
 <CreateTime>${ts}</CreateTime>
-<MsgType>text</MsgType>
-<Content>${content}</Content>
+<MsgType><![CDATA[text]]></MsgType>
+<Content><![CDATA[${content}]]></Content>
 </xml>`;
 }
 
