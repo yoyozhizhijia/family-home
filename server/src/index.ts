@@ -159,15 +159,6 @@ async function start() {
   app.listen(config.port, () => {
     console.log(`🏡 家庭时光服务器已启动: http://localhost:${config.port}`);
     console.log(`   微信回调地址: ${config.siteUrl}/api/wechat/callback`);
-
-    // 自动设置公众号菜单（AppID+AppSecret 都配了才执行）
-    if (config.wechat.appId && config.wechat.appSecret) {
-      setCustomMenu().catch((err) => {
-        console.error('[微信] 菜单自动设置失败:', err.message);
-      });
-    } else {
-      console.log('[微信] AppID/AppSecret 未配置，跳过菜单自动设置');
-    }
   });
 }
 
