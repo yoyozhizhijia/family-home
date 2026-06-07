@@ -46,6 +46,11 @@ router.post('/callback', async (req: Request, res: Response) => {
   });
 
   req.on('end', async () => {
+    // 辅助：发送 XML 被动回复
+    const xmlReply = (xmlStr: string) => {
+      res.writeHead(200, { 'Content-Type': 'text/xml; charset=utf-8' });
+      res.end(xmlStr);
+    };
     try {
       const msg = await parseMessage(xml);
       if (!msg) {
@@ -70,17 +75,13 @@ router.post('/callback', async (req: Request, res: Response) => {
 
       // ── 菜单点击事件 ──────────────────────────────
       if (msg.msgType === 'event' && msg.event === 'CLICK') {
-        res.type('text/xml');
-        if (msg.eventKey === 'HELP') {
-          res.send(helpReplyXml(msg.fromUserName, msg.toUserName));
-        } else if (msg.eventKey === 'UPLOAD') {
-          res.send(uploadHintReplyXml(msg.fromUserName, msg.toUserName));
-        } else if (msg.eventKey === 'JOIN') {
-          res.send(joinHintReplyXml(msg.fromUserName, msg.toUserName));
-        } else {
-          // 未知菜单，回欢迎
-          res.send(helpReplyXml(msg.fromUserName, msg.toUserName));
-        }
+        const replyFn: Record<string, Function> = {
+          HELP: helpReplyXml,
+          UPLOAD: uploadHintReplyXml,
+          JOIN: joinHintReplyXml,
+        };
+        const fn = replyFn[msg.eventKey || ''] || helpReplyXml;
+        xmlReply(fn(msg.fromUserName, msg.toUserName));
         return;
       }
 
@@ -91,8 +92,7 @@ router.post('/callback', async (req: Request, res: Response) => {
           pendingNickname.delete(msg.fromUserName);
           await upsertMember(msg.fromUserName, nickname);
           console.log(`[微信] 🎉 "${nickname}"(${msg.fromUserName}) 正式加入`);
-          res.type('text/xml');
-          res.send(welcomeReplyXml(msg.fromUserName, msg.toUserName));
+        xmlReply(welcomeReplyXml(msg.fromUserName, msg.toUserName));
           return;
         }
         // 发了图片或其他 → 继续等
@@ -108,12 +108,10 @@ router.post('/callback', async (req: Request, res: Response) => {
         msg.content.trim() === config.joinPassphrase
       ) {
         if (isMember(msg.fromUserName)) {
-          res.type('text/xml');
-          res.send(textHintReplyXml(msg.fromUserName, msg.toUserName));
+          xmlReply(textHintReplyXml(msg.fromUserName, msg.toUserName));
         } else {
           pendingNickname.set(msg.fromUserName, '');
-          res.type('text/xml');
-          res.send(askNicknameXml(msg.fromUserName, msg.toUserName));
+          xmlReply(askNicknameXml(msg.fromUserName, msg.toUserName));
         }
         return;
       }
@@ -121,8 +119,7 @@ router.post('/callback', async (req: Request, res: Response) => {
       // 白名单检查：只允许家庭成员发图
       if (!isMember(msg.fromUserName)) {
         console.log(`[微信] 非家庭成员 (${msg.fromUserName})，已忽略。可发送暗号加入。`);
-        res.type('text/xml');
-        res.send(notMemberReplyXml(msg.fromUserName, msg.toUserName));
+        xmlReply(notMemberReplyXml(msg.fromUserName, msg.toUserName));
         return;
       }
 
@@ -131,19 +128,16 @@ router.post('/callback', async (req: Request, res: Response) => {
         const nickname = getMemberNickname(msg.fromUserName) || '家人';
         const result = await handleImageMessage(msg, nickname);
         console.log(`[微信] 图片已保存: ${result.id}`);
-        res.type('text/xml');
-        res.send(photoSavedReplyXml(msg.fromUserName, msg.toUserName, nickname));
+        xmlReply(photoSavedReplyXml(msg.fromUserName, msg.toUserName, nickname));
         return;
       } else if (msg.msgType === 'text') {
         // 关键词「今日动态」→ 回复今日统计
         if (msg.content && /^今日动态$/.test(msg.content.trim())) {
-          res.type('text/xml');
-          res.send(todayStatsReplyXml(msg.fromUserName, msg.toUserName));
+          xmlReply(todayStatsReplyXml(msg.fromUserName, msg.toUserName));
           return;
         }
         // 其它文字消息提示发图
-        res.type('text/xml');
-        res.send(textHintReplyXml(msg.fromUserName, msg.toUserName));
+        xmlReply(textHintReplyXml(msg.fromUserName, msg.toUserName));
         return;
       }
 
