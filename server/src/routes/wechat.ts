@@ -7,6 +7,10 @@ import { config } from '../config';
 // 昵称确认暂存：<openid, 等待昵称>
 const pendingNickname = new Map<string, string>();
 
+// 5分钟内已处理的消息 ID（防微信重试导致重复上传）
+const processedMsgIds = new Set<string>();
+const MSG_ID_TTL = 5 * 60 * 1000; // 5分钟过期
+
 const router = Router();
 
 /**
@@ -51,6 +55,18 @@ router.post('/callback', async (req: Request, res: Response) => {
       }
 
       console.log(`[微信] 收到消息: MsgType=${msg.msgType}, From=${msg.fromUserName}`);
+
+      // 防重：如果 msgId 已处理过，直接忽略
+      const msgId = msg.msgId;
+      if (msgId && processedMsgIds.has(msgId)) {
+        console.log(`[微信] 重复消息已忽略: ${msgId}`);
+        res.send('success');
+        return;
+      }
+      if (msgId) {
+        processedMsgIds.add(msgId);
+        setTimeout(() => processedMsgIds.delete(msgId), MSG_ID_TTL);
+      }
 
       // ── 菜单点击事件 ──────────────────────────────
       if (msg.msgType === 'event' && msg.event === 'CLICK') {
