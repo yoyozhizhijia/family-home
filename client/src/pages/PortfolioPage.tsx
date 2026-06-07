@@ -57,7 +57,7 @@ export default function PortfolioPage() {
         const formData = new FormData();
         formData.append('photo', files[i]);
         formData.append('category', info.key);
-        const res = await admin.authedFetch('/api/photos/upload', { method: 'POST', body: formData });
+        const res = await fetch('/api/photos/upload', { method: 'POST', body: formData });
         if (res.ok) success++; else fail++;
       } catch { fail++; }
     }
@@ -108,19 +108,17 @@ export default function PortfolioPage() {
         </div>
       </div>
 
-      {/* 上传按钮 — 仅家庭成员/管理员可见 */}
-      {admin.isAdmin && (
-        <div className="max-w-4xl mx-auto mb-4 flex justify-end gap-2">
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-            className="px-4 py-2 text-sm bg-white text-amber-700 rounded-full shadow hover:shadow-md transition font-medium"
-          >
-            {uploading ? '上传中...' : `📷 添加作品`}
-          </button>
-          <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleUpload} className="hidden" disabled={uploading} />
-        </div>
-      )}
+      {/* 上传按钮 — 所有人可传作品 */}
+      <div className="max-w-4xl mx-auto mb-4 flex justify-end gap-2">
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+          className="px-4 py-2 text-sm bg-white text-amber-700 rounded-full shadow hover:shadow-md transition font-medium"
+        >
+          {uploading ? '上传中...' : `📷 添加作品`}
+        </button>
+        <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleUpload} className="hidden" disabled={uploading} />
+      </div>
 
       {/* 提示 */}
       {message && (

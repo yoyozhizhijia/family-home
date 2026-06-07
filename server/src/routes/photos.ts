@@ -102,9 +102,11 @@ function requireFamily(req: Request, res: Response, next: Function) {
 
 /**
  * POST /api/photos/upload
- * 网页端上传照片（需家庭成员身份）
+ * 网页端上传：
+ *   - 普通照片（无 category）→ 需要管理员 token
+ *   - 作品集上传（有 category）→ 所有人可传（作品是共享创作）
  */
-router.post('/upload', requireFamily, upload.single('photo'), async (req: Request, res: Response) => {
+router.post('/upload', upload.single('photo'), async (req: Request, res: Response) => {
   try {
     if (!req.file) {
       res.status(400).json({ error: '请选择一张照片' });
@@ -112,6 +114,16 @@ router.post('/upload', requireFamily, upload.single('photo'), async (req: Reques
     }
 
     const category = (req.body.category as string) || '';
+
+    // 普通照片上传（无作品集分类）→ 需管理员身份
+    if (!category) {
+      const token = req.headers.authorization?.replace('Bearer ', '');
+      if (!token || !verifyToken(token)) {
+        res.status(403).json({ error: '只有家庭成员才能上传照片。请先通过公众号加入家庭。' });
+        return;
+      }
+    }
+
     const photo = await processUpload(req.file, category);
 
     res.json({
