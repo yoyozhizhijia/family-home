@@ -40,7 +40,7 @@ export async function setCustomMenu(): Promise<{ errcode: number; errmsg: string
     button: [
       {
         type: 'view',
-        name: '🏡 家庭时光',
+        name: '🏡 家庭时光机',
         url: config.siteUrl,
       },
       {

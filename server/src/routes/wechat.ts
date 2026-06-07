@@ -73,7 +73,7 @@ router.post('/callback', async (req: Request, res: Response) => {
         if (msg.msgType === 'text' && msg.content) {
           const nickname = msg.content.trim().slice(0, 20) || '家人';
           pendingNickname.delete(msg.fromUserName);
-          upsertMember(msg.fromUserName, nickname);
+          await upsertMember(msg.fromUserName, nickname);
           console.log(`[微信] 🎉 "${nickname}"(${msg.fromUserName}) 正式加入`);
           res.type('text/xml');
           res.send(welcomeReplyXml(msg.fromUserName, msg.toUserName));
@@ -157,7 +157,7 @@ function helpReplyXml(from: string, to: string): string {
 
 function welcomeReplyXml(from: string, to: string): string {
   const now = Math.floor(Date.now() / 1000);
-  const content = `🎉 欢迎加入家庭时光！
+  const content = `🎉 欢迎加入家庭时光机！
 
 从现在开始，你发的每张照片都会自动保存到我们的家庭照片墙。
 
@@ -189,7 +189,7 @@ function photoSavedReplyXml(from: string, to: string, nickname: string): string 
     `🏡 ${nickname}的时光已存入我们的家庭记忆库 💛`,
     `🎁 ${nickname}又分享了一张美好瞬间，大家快来看看`,
     `🌈 ${nickname}的照片已上墙，像彩虹一样温暖`,
-    `🍀 收到${nickname}的一份心意，已珍藏到家庭时光`,
+    `🍀 收到${nickname}的一份心意，已珍藏到家庭时光机`,
     `🖼️ ${nickname}的画布又添了一笔，照片墙更丰富了`,
     `💎 如获至宝！${nickname}的这张照片太珍贵了`,
     `🌻 ${nickname}的分享让今天的照片墙更明亮了`,
@@ -200,7 +200,7 @@ function photoSavedReplyXml(from: string, to: string, nickname: string): string 
     `⭐ ${nickname}又点亮了照片墙的一颗星`,
     `🌸 ${nickname}的瞬间已绽放，去照片墙闻闻花香吧`,
     `🔮 ${nickname}的魔法时刻已封印在照片墙中`,
-    `🎪 精彩！${nickname}的这一刻已登上家庭时光的舞台`,
+    `🎪 精彩！${nickname}的这一刻已登上家庭时光机的舞台`,
   ];
   const content = `${msgs[Math.floor(Math.random() * msgs.length)]}\n\n📱 照片墙：\n${config.siteUrl}`;
   return wrapTextXml(from, to, now, content);
@@ -216,7 +216,7 @@ function todayStatsReplyXml(from: string, to: string): string {
   const now = Math.floor(Date.now() / 1000);
   const stats = todayStats();
   const parts: string[] = [];
-  parts.push(`📊 今日家庭时光播报\n`);
+  parts.push(`📊 今日家庭时光机播报\n`);
 
   if (stats.photoCount === 0) {
     parts.push(`今天还没有新的照片，期待大家的分享 ✨`);

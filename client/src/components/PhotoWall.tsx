@@ -40,7 +40,7 @@ export default function PhotoWall({ photos, hasMore, loading, onLoadMore, isAdmi
     return (
       <div className="text-center py-20 text-amber-500">
         <div className="text-7xl mb-5">📷</div>
-        <p className="text-xl font-medium text-amber-700 mb-2">欢迎来到家庭时光</p>
+        <p className="text-xl font-medium text-amber-700 mb-2">欢迎来到家庭时光机</p>
         <p className="text-sm text-amber-400">
           向公众号发送照片，或用右下角按钮上传
         </p>

@@ -58,13 +58,13 @@ router.get('/', (req: Request, res: Response) => {
 
 // ── 评论（必须放在 /:id 之前避免路由冲突）─────────
 /** POST /api/photos/:id/comment — 添加评论 */
-router.post('/:id/comment', (req: Request, res: Response) => {
+router.post('/:id/comment', async (req: Request, res: Response) => {
   const { author, text } = req.body;
   if (!author || !text) {
     res.status(400).json({ error: '请填写昵称和留言内容' });
     return;
   }
-  const comment = addComment(req.params.id, author, text);
+  const comment = await addComment(req.params.id, author, text);
   if (!comment) {
     res.status(404).json({ error: '照片不存在' });
     return;
@@ -152,8 +152,8 @@ function requireAdmin(req: Request, res: Response, next: Function) {
  * DELETE /api/photos/:id
  * 管理员删除照片
  */
-router.delete('/:id', requireAdmin, (req: Request, res: Response) => {
-  const ok = deletePhoto(req.params.id);
+router.delete('/:id', requireAdmin, async (req: Request, res: Response) => {
+  const ok = await deletePhoto(req.params.id);
   if (!ok) {
     res.status(404).json({ error: '照片不存在' });
     return;
@@ -165,13 +165,13 @@ router.delete('/:id', requireAdmin, (req: Request, res: Response) => {
  * PATCH /api/photos/:id
  * 管理员修改照片昵称  { nickname: string }
  */
-router.patch('/:id', requireAdmin, (req: Request, res: Response) => {
+router.patch('/:id', requireAdmin, async (req: Request, res: Response) => {
   const { nickname } = req.body;
   if (!nickname || typeof nickname !== 'string') {
     res.status(400).json({ error: '昵称不能为空' });
     return;
   }
-  const photo = updatePhotoNickname(req.params.id, nickname.trim());
+  const photo = await updatePhotoNickname(req.params.id, nickname.trim());
   if (!photo) {
     res.status(404).json({ error: '照片不存在' });
     return;

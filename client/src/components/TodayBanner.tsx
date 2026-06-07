@@ -24,7 +24,7 @@ export default function TodayBanner() {
   return (
     <div className="mb-6 px-5 py-4 bg-gradient-to-r from-amber-100 via-orange-50 to-amber-100 rounded-2xl border border-amber-200 shadow-sm">
       <div className="flex items-center gap-2 mb-2">
-        <span className="text-sm font-semibold text-amber-700">📊 今日家庭播报</span>
+        <span className="text-sm font-semibold text-amber-700">📊 今日家庭时光机播报</span>
       </div>
 
       {data.photoCount === 0 ? (

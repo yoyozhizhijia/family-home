@@ -54,10 +54,12 @@ async function save(): Promise<void> {
   }
   fs.writeFileSync(DATA_FILE, JSON.stringify(photos, null, 2), 'utf8');
 
-  // 异步备份到 Cloudinary（不阻塞）
-  backupJson(BACKUP_KEY, photos).catch((err) => {
+  // 同步等待云端备份（确保 Render 重启前数据已落盘）
+  try {
+    await backupJson(BACKUP_KEY, photos);
+  } catch (err: any) {
     console.error('[数据] 云端备份失败:', err.message);
-  });
+  }
 }
 
 /** 启动时尝试从 Cloudinary 恢复，本地数据兜底 */
@@ -92,7 +94,7 @@ export async function initFromCloud(): Promise<void> {
 export const dataInitPromise = initFromCloud();
 
 /** 插入照片记录 */
-export function insertPhoto(params: {
+export async function insertPhoto(params: {
   originalPath: string;
   thumbnailPath: string;
   originalUrl: string;
@@ -102,7 +104,7 @@ export function insertPhoto(params: {
   width?: number;
   height?: number;
   category?: string;
-}): PhotoRecord {
+}): Promise<PhotoRecord> {
   const now = new Date();
   const record: PhotoRecord = {
     id: `${now.getTime()}_${Math.random().toString(36).slice(2, 8)}`,
@@ -121,7 +123,7 @@ export function insertPhoto(params: {
   };
 
   photos.unshift(record); // 最新在前
-  save();
+  await save();
   return record;
 }
 
@@ -192,7 +194,7 @@ export function countByMonth(): { month_key: string; count: number }[] {
 }
 
 /** 删除照片 */
-export function deletePhoto(id: string): boolean {
+export async function deletePhoto(id: string): Promise<boolean> {
   const idx = photos.findIndex((p) => p.id === id);
   if (idx === -1) return false;
 
@@ -204,17 +206,17 @@ export function deletePhoto(id: string): boolean {
   }
 
   photos.splice(idx, 1);
-  save();
+  await save();
   return true;
 }
 
 /** 修改照片昵称 */
-export function updatePhotoNickname(id: string, nickname: string): PhotoRecord | undefined {
+export async function updatePhotoNickname(id: string, nickname: string): Promise<PhotoRecord | undefined> {
   const photo = photos.find((p) => p.id === id);
   if (!photo) return undefined;
 
   photo.uploader_nickname = nickname;
-  save();
+  await save();
   return photo;
 }
 
@@ -263,7 +265,7 @@ export function todayStats(): {
 // ── 评论 ──────────────────────────────────────
 
 /** 添加评论 */
-export function addComment(photoId: string, author: string, text: string): PhotoComment | null {
+export async function addComment(photoId: string, author: string, text: string): Promise<PhotoComment | null> {
   const photo = photos.find((p) => p.id === photoId);
   if (!photo) return null;
   if (!photo.comments) photo.comments = [];
@@ -275,17 +277,17 @@ export function addComment(photoId: string, author: string, text: string): Photo
     created_at: new Date().toISOString(),
   };
   photo.comments.push(comment);
-  save();
+  await save();
   return comment;
 }
 
 /** 删除评论 */
-export function deleteComment(photoId: string, commentId: string): boolean {
+export async function deleteComment(photoId: string, commentId: string): Promise<boolean> {
   const photo = photos.find((p) => p.id === photoId);
   if (!photo?.comments) return false;
   const idx = photo.comments.findIndex((c) => c.id === commentId);
   if (idx === -1) return false;
   photo.comments.splice(idx, 1);
-  save();
+  await save();
   return true;
 }

@@ -27,10 +27,11 @@ async function save() {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(MEMBER_FILE, JSON.stringify(members, null, 2), 'utf8');
 
-  // 异步备份到 Cloudinary
-  backupJson(BACKUP_KEY, members).catch((err) => {
+  try {
+    await backupJson(BACKUP_KEY, members);
+  } catch (err: any) {
     console.error('[成员] 云端备份失败:', err.message);
-  });
+  }
 }
 
 /** 启动时从云端恢复 */
@@ -65,11 +66,11 @@ export function getMemberNickname(openid: string): string {
 }
 
 /** 添加/更新成员 */
-export function upsertMember(openid: string, nickname: string): Member {
+export async function upsertMember(openid: string, nickname: string): Promise<Member> {
   const existing = members.find((m) => m.openid === openid);
   if (existing) {
     existing.nickname = nickname;
-    save();
+    await save();
     return existing;
   }
   const m: Member = {
@@ -78,16 +79,16 @@ export function upsertMember(openid: string, nickname: string): Member {
     added_at: new Date().toISOString(),
   };
   members.push(m);
-  save();
+  await save();
   return m;
 }
 
 /** 删除成员 */
-export function removeMember(openid: string): boolean {
+export async function removeMember(openid: string): Promise<boolean> {
   const idx = members.findIndex((m) => m.openid === openid);
   if (idx === -1) return false;
   members.splice(idx, 1);
-  save();
+  await save();
   return true;
 }
 

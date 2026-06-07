@@ -59,19 +59,19 @@ app.get('/api/members', requireAdmin, (_req, res) => {
 });
 
 // 添加/更新成员
-app.post('/api/members', requireAdmin, (req, res) => {
+app.post('/api/members', requireAdmin, async (req, res) => {
   const { openid, nickname } = req.body;
   if (!openid || !nickname) {
     res.status(400).json({ error: 'openid 和 nickname 不能为空' });
     return;
   }
-  const member = upsertMember(openid, nickname);
+  const member = await upsertMember(openid, nickname);
   res.json(member);
 });
 
 // 删除成员
-app.delete('/api/members/:openid', requireAdmin, (req, res) => {
-  const ok = removeMember(req.params.openid);
+app.delete('/api/members/:openid', requireAdmin, async (req, res) => {
+  const ok = await removeMember(req.params.openid);
   if (!ok) {
     res.status(404).json({ error: '成员不存在' });
     return;
@@ -80,13 +80,13 @@ app.delete('/api/members/:openid', requireAdmin, (req, res) => {
 });
 
 // 修改成员昵称
-app.patch('/api/members/:openid', requireAdmin, (req, res) => {
+app.patch('/api/members/:openid', requireAdmin, async (req, res) => {
   const { nickname } = req.body;
   if (!nickname || typeof nickname !== 'string') {
     res.status(400).json({ error: '昵称不能为空' });
     return;
   }
-  const member = upsertMember(req.params.openid, nickname.trim());
+  const member = await upsertMember(req.params.openid, nickname.trim());
   res.json(member);
 });
 
@@ -157,7 +157,7 @@ async function start() {
   console.log('[启动] 数据初始化完成，准备接受请求');
 
   app.listen(config.port, () => {
-    console.log(`🏡 家庭时光服务器已启动: http://localhost:${config.port}`);
+    console.log(`🏡 家庭时光机服务器已启动: http://localhost:${config.port}`);
     console.log(`   微信回调地址: ${config.siteUrl}/api/wechat/callback`);
   });
 }
