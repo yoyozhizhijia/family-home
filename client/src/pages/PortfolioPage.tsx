@@ -13,8 +13,8 @@ interface PortfolioInfo {
 }
 
 const CATEGORIES: Record<string, PortfolioInfo> = {
-  yoyo: { key: 'yoyo', title: '悠悠作品集', subtitle: '悠悠的画笔与小手作 🎨', emoji: '🎨', gradient: 'from-pink-400 to-rose-500' },
-  zhizhi: { key: 'zhizhi', title: '之之作品集', subtitle: '之之的创意与成长 ✨', emoji: '✨', gradient: 'from-sky-400 to-blue-500' },
+  yoyo: { key: 'yoyo', title: '悠悠作品集', subtitle: '悠悠的画笔与小手作 🎨', emoji: '🎨', gradient: 'from-sky-400 to-blue-500' },
+  zhizhi: { key: 'zhizhi', title: '之之作品集', subtitle: '之之的创意与成长 ✨', emoji: '✨', gradient: 'from-pink-400 to-rose-500' },
   everyone: { key: 'everyone', title: '大家的作品', subtitle: '一起创作的美好时光 💛', emoji: '💛', gradient: 'from-amber-400 to-orange-500' },
 };
 

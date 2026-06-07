@@ -125,19 +125,20 @@ export async function getStorageUsage(): Promise<{
 
 // ── 数据持久化：备份/恢复 JSON 数据 ──────────
 
-const BACKUP_PREFIX = 'data-backup';
+const BACKUP_PREFIX = 'family-home-data-backup';
 
-/** 备份 JSON 数据到 Cloudinary（raw 文件） */
-export async function backupJson(key: string, data: object): Promise<void> {
+/** 备份 JSON 数据到 Cloudinary（raw 文件），返回访问 URL */
+export async function backupJson(key: string, data: object): Promise<string> {
   ensureInit();
   const json = Buffer.from(JSON.stringify(data), 'utf8');
 
-  await new Promise((resolve, reject) => {
+  const result: any = await new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
       {
-        public_id: `family-home/${BACKUP_PREFIX}/${key}`,
+        public_id: `${BACKUP_PREFIX}-${key}`,
         resource_type: 'raw',
         overwrite: true,
+        format: 'json',
       },
       (error, result) => {
         if (error) reject(error);
@@ -150,20 +151,23 @@ export async function backupJson(key: string, data: object): Promise<void> {
     readable.push(null);
     readable.pipe(stream);
   });
+
+  const url = result.secure_url;
+  console.log(`[Cloudinary] 备份 ${key}: ${url}`);
+  return url;
 }
 
 /** 从 Cloudinary 恢复 JSON 数据，失败返回 null */
 export async function restoreJson<T>(key: string): Promise<T | null> {
   ensureInit();
+  // raw 文件直链格式：https://res.cloudinary.com/{cloud}/raw/upload/{public_id}.json
+  const url = `https://res.cloudinary.com/${config.cloudinary.cloudName}/raw/upload/${BACKUP_PREFIX}-${key}.json`;
   try {
-    const url = cloudinary.url(`family-home/${BACKUP_PREFIX}/${key}`, {
-      secure: true,
-      resource_type: 'raw',
-    });
-    const response = await require('axios').get(url, { timeout: 15000 });
+    console.log(`[Cloudinary] 尝试恢复: ${url}`);
+    const response = await axios.get(url, { timeout: 15000 });
     return JSON.parse(response.data);
-  } catch {
-    console.log(`[Cloudinary] 未找到云端备份: ${key}，使用本地数据`);
+  } catch (err: any) {
+    console.log(`[Cloudinary] 备份不存在: ${key} (${err.response?.status || err.message})`);
     return null;
   }
 }

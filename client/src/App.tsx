@@ -19,10 +19,10 @@ export default function App() {
               照片墙
             </a>
             <a href="/portfolio/yoyo" className={`hover:text-amber-900 transition ${location.pathname === '/portfolio/yoyo' ? 'font-semibold text-amber-900' : ''}`}>
-              🎨 悠悠
+              ✨ 悠悠
             </a>
             <a href="/portfolio/zhizhi" className={`hover:text-amber-900 transition ${location.pathname === '/portfolio/zhizhi' ? 'font-semibold text-amber-900' : ''}`}>
-              ✨ 之之
+              🎨 之之
             </a>
             <a href="/portfolio/everyone" className={`hover:text-amber-900 transition ${location.pathname === '/portfolio/everyone' ? 'font-semibold text-amber-900' : ''}`}>
               💛 大家

@@ -38,10 +38,10 @@ export default function TodayBanner() {
           </p>
           <div className="flex gap-4 text-xs">
             {data.yoyoCount > 0 && (
-              <a href="/portfolio/yoyo" className="text-pink-600 hover:underline">🎨 悠悠 +{data.yoyoCount}</a>
+              <a href="/portfolio/yoyo" className="text-sky-600 hover:underline">✨ 悠悠 +{data.yoyoCount}</a>
             )}
             {data.zhizhiCount > 0 && (
-              <a href="/portfolio/zhizhi" className="text-sky-600 hover:underline">✨ 之之 +{data.zhizhiCount}</a>
+              <a href="/portfolio/zhizhi" className="text-pink-600 hover:underline">🎨 之之 +{data.zhizhiCount}</a>
             )}
             {data.everyoneCount > 0 && (
               <a href="/portfolio/everyone" className="text-orange-600 hover:underline">💛 大家 +{data.everyoneCount}</a>
