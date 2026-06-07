@@ -13,9 +13,15 @@ export default function App() {
       {/* 顶栏 */}
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-amber-200">
         {/* 标题行 */}
-        <div className="max-w-6xl mx-auto px-4 h-12 flex items-center">
+        <div className="max-w-6xl mx-auto px-4 h-12 flex items-center justify-between">
           <a href="/" className="text-lg sm:text-xl font-bold text-amber-800 tracking-wide">
             🏡 家庭时光机
+          </a>
+          <a
+            href="/help"
+            className="text-xs text-amber-500 hover:text-amber-700 transition flex items-center gap-1 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-full"
+          >
+            📖 怎么用
           </a>
         </div>
         {/* 导航行：桌面横排，手机横向滚动 */}
