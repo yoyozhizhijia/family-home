@@ -22,21 +22,25 @@ function load() {
   }
 }
 
-async function save() {
+function save() {
   const dir = path.dirname(MEMBER_FILE);
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(MEMBER_FILE, JSON.stringify(members, null, 2), 'utf8');
 
-  for (let attempt = 1; attempt <= 3; attempt++) {
-    try {
-      await backupJson(BACKUP_KEY, members);
-      return;
-    } catch (err: any) {
-      console.error(`[成员] 云端备份失败 (第${attempt}次):`, err.message);
-      if (attempt < 3) await new Promise((r) => setTimeout(r, 2000));
+  // 异步云端备份
+  const data = [...members];
+  (async () => {
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        await backupJson(BACKUP_KEY, data);
+        return;
+      } catch (err: any) {
+        console.error(`[成员] 云端备份失败 (第${attempt}次):`, err.message);
+        if (attempt < 3) await new Promise((r) => setTimeout(r, 2000));
+      }
     }
-  }
-  console.error('[成员] ⚠️ 云端备份最终失败！');
+    console.error('[成员] ⚠️ 云端备份 3 次均失败');
+  })();
 }
 
 /** 启动时从云端恢复 */
@@ -59,7 +63,7 @@ export async function initFromCloud() {
   } else if (local.length > 0) {
     members = local;
     console.log(`[成员] 使用本地 ${local.length} 位 (云端${remote?.length || 0}位)，补备份`);
-    save().catch(() => {});
+    save();
   } else {
     members = [];
     console.log('[成员] 无数据，从零开始');

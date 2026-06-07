@@ -48,23 +48,26 @@ function load(): void {
 }
 
 /** 保存数据到文件 + 同步备份到 Cloudinary */
-async function save(): Promise<void> {
+function save(): void {
   if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
   }
   fs.writeFileSync(DATA_FILE, JSON.stringify(photos, null, 2), 'utf8');
 
-  // 同步云端备份，最多重试 3 次
-  for (let attempt = 1; attempt <= 3; attempt++) {
-    try {
-      await backupJson(BACKUP_KEY, photos);
-      return; // 成功
-    } catch (err: any) {
-      console.error(`[数据] 云端备份失败 (第${attempt}次):`, err.message);
-      if (attempt < 3) await new Promise((r) => setTimeout(r, 2000));
+  // 异步云端备份，不阻塞当前请求（失败不影响用户体验）
+  const data = [...photos];
+  (async () => {
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        await backupJson(BACKUP_KEY, data);
+        return;
+      } catch (err: any) {
+        console.error(`[数据] 云端备份失败 (第${attempt}次):`, err.message);
+        if (attempt < 3) await new Promise((r) => setTimeout(r, 2000));
+      }
     }
-  }
-  console.error('[数据] ⚠️ 云端备份最终失败，数据仅保存在本地磁盘！下次重启可能丢失。');
+    console.error('[数据] ⚠️ 云端备份 3 次均失败，下次重启可能回退到旧版本');
+  })();
 }
 
 /** 启动时从云端恢复 + 本地兜底（取数据多的那个） */
@@ -89,7 +92,7 @@ export async function initFromCloud(): Promise<void> {
     photos = local;
     console.log(`[数据] 使用本地 ${local.length} 条 (云端${remote?.length || 0}条)，补备份`);
     // 本地更新，立刻同步到云端
-    save().catch(() => {});
+    save();
   } else {
     photos = [];
     console.log('[数据] 无数据，从零开始');
