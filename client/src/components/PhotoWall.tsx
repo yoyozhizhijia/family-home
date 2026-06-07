@@ -205,6 +205,7 @@ function categoryLabel(cat: string): string {
     case 'yoyo': return '✨悠悠';
     case 'zhizhi': return '🎨之之';
     case 'everyone': return '💛大家';
+    case 'explore': return '🌿探索';
     default: return '';
   }
 }

@@ -162,8 +162,9 @@ function welcomeReplyXml(from: string, to: string): string {
 从现在开始，你发的每张照片都会自动保存到我们的家庭照片墙。
 
 📱 <a href="${config.siteUrl}">点击查看照片墙</a>
-🎨 <a href="${config.siteUrl}/portfolio/yoyo">悠悠作品集</a>
-✨ <a href="${config.siteUrl}/portfolio/zhizhi">之之作品集</a>
+✨ <a href="${config.siteUrl}/portfolio/yoyo">悠悠作品集</a>
+🎨 <a href="${config.siteUrl}/portfolio/zhizhi">之之作品集</a>
+🌿 <a href="${config.siteUrl}/portfolio/explore">探索发现</a>
 
 发「今日动态」随时了解最新分享 ❤️`;
   return wrapTextXml(from, to, now, content);
@@ -224,12 +225,14 @@ function todayStatsReplyXml(from: string, to: string): string {
     if (stats.yoyoCount > 0) parts.push(`✨ 悠悠新作品 ${stats.yoyoCount} 件`);
     if (stats.zhizhiCount > 0) parts.push(`🎨 之之新作品 ${stats.zhizhiCount} 件`);
     if (stats.everyoneCount > 0) parts.push(`💛 大家新作品 ${stats.everyoneCount} 件`);
+    if (stats.exploreCount > 0) parts.push(`🌿 探索新发现 ${stats.exploreCount} 件`);
     if (stats.uploaders.length > 0) parts.push(`👤 来自：${stats.uploaders.join('、')}`);
   }
 
   parts.push(`\n📱 <a href="${config.siteUrl}">进入照片墙</a>`);
-  parts.push(`🎨 <a href="${config.siteUrl}/portfolio/yoyo">悠悠作品集</a>`);
-  parts.push(`✨ <a href="${config.siteUrl}/portfolio/zhizhi">之之作品集</a>`);
+  parts.push(`✨ <a href="${config.siteUrl}/portfolio/yoyo">悠悠作品集</a>`);
+  parts.push(`🎨 <a href="${config.siteUrl}/portfolio/zhizhi">之之作品集</a>`);
+  parts.push(`🌿 <a href="${config.siteUrl}/portfolio/explore">探索发现</a>`);
 
   return wrapTextXml(from, to, now, parts.join('\n'));
 }

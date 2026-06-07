@@ -5,6 +5,7 @@ interface TodayData {
   yoyoCount: number;
   zhizhiCount: number;
   everyoneCount: number;
+  exploreCount: number;
   uploaders: string[];
 }
 
@@ -45,6 +46,9 @@ export default function TodayBanner() {
             )}
             {data.everyoneCount > 0 && (
               <a href="/portfolio/everyone" className="text-orange-600 hover:underline">💛 大家 +{data.everyoneCount}</a>
+            )}
+            {data.exploreCount > 0 && (
+              <a href="/portfolio/explore" className="text-emerald-600 hover:underline">🌿 探索 +{data.exploreCount}</a>
             )}
           </div>
         </div>

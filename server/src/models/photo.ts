@@ -224,6 +224,7 @@ export function todayStats(): {
   yoyoCount: number;
   zhizhiCount: number;
   everyoneCount: number;
+  exploreCount: number;
   uploaders: string[];
 } {
   const today = new Date();
@@ -236,11 +237,13 @@ export function todayStats(): {
   let yoyoCount = 0;
   let zhizhiCount = 0;
   let everyoneCount = 0;
+  let exploreCount = 0;
 
   for (const p of todayPhotos) {
     if (p.category === 'yoyo') yoyoCount++;
     else if (p.category === 'zhizhi') zhizhiCount++;
     else if (p.category === 'everyone') everyoneCount++;
+    else if (p.category === 'explore') exploreCount++;
 
     if (p.uploader_nickname && !uploaders.includes(p.uploader_nickname)) {
       uploaders.push(p.uploader_nickname);
@@ -252,6 +255,7 @@ export function todayStats(): {
     yoyoCount,
     zhizhiCount,
     everyoneCount,
+    exploreCount,
     uploaders,
   };
 }
