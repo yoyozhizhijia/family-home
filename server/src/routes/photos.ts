@@ -56,6 +56,22 @@ router.get('/', (req: Request, res: Response) => {
   });
 });
 
+// ── 评论（必须放在 /:id 之前避免路由冲突）─────────
+/** POST /api/photos/:id/comment — 添加评论 */
+router.post('/:id/comment', (req: Request, res: Response) => {
+  const { author, text } = req.body;
+  if (!author || !text) {
+    res.status(400).json({ error: '请填写昵称和留言内容' });
+    return;
+  }
+  const comment = addComment(req.params.id, author, text);
+  if (!comment) {
+    res.status(404).json({ error: '照片不存在' });
+    return;
+  }
+  res.json(comment);
+});
+
 /**
  * GET /api/photos/:id
  * 照片详情
@@ -143,38 +159,6 @@ router.patch('/:id', requireAdmin, (req: Request, res: Response) => {
     thumbnail_url: normalizeUrl(photo.thumbnail_url),
     original_url: normalizeUrl(photo.original_url),
   });
-});
-
-// ── 评论 ─────────────────────────────────────
-
-/** POST /api/photos/:id/comment — 添加评论 */
-router.post('/:id/comment', (req: Request, res: Response) => {
-  const { author, text } = req.body;
-  if (!author || !text) {
-    res.status(400).json({ error: '请填写昵称和留言内容' });
-    return;
-  }
-  const comment = addComment(req.params.id, author, text);
-  if (!comment) {
-    res.status(404).json({ error: '照片不存在' });
-    return;
-  }
-  res.json(comment);
-});
-
-/** DELETE /api/photos/:id/comment/:commentId — 管理员删除评论 */
-router.delete('/:id/comment/:commentId', (req: Request, res: Response) => {
-  const token = req.headers.authorization?.replace('Bearer ', '');
-  if (!token || !verifyToken(token)) {
-    // 非管理员也可以删除评论？不，这个不用太严格
-    // 不加管理员验证，方便家人管理
-  }
-  const ok = deleteComment(req.params.id, req.params.commentId);
-  if (!ok) {
-    res.status(404).json({ error: '评论不存在' });
-    return;
-  }
-  res.json({ success: true });
 });
 
 export default router;
