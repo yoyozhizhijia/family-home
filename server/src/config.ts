@@ -8,7 +8,7 @@ export const config = {
   port: parseInt(process.env.PORT || '3000', 10),
   uploadDir: path.resolve(__dirname, '../../', process.env.UPLOAD_DIR || 'uploads'),
   thumbnailWidth: parseInt(process.env.THUMBNAIL_WIDTH || '400', 10),
-  siteUrl: process.env.SITE_URL || 'http://localhost:3000',
+  siteUrl: (process.env.SITE_URL || 'http://localhost:3000').trim().replace(/\/$/, ''),
   accessPassword: process.env.ACCESS_PASSWORD || '',
   adminUsername: process.env.ADMIN_USERNAME || 'admin',
   joinPassphrase: process.env.JOIN_PASSPHRASE || '',

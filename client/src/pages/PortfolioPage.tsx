@@ -110,15 +110,13 @@ export default function PortfolioPage() {
 
       {/* 上传按钮 */}
       <div className="max-w-4xl mx-auto mb-4 flex justify-end gap-2">
-        {admin.isAdmin && (
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-            className="px-4 py-2 text-sm bg-white text-amber-700 rounded-full shadow hover:shadow-md transition font-medium"
-          >
-            {uploading ? '上传中...' : `📷 添加作品`}
-          </button>
-        )}
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+          className="px-4 py-2 text-sm bg-white text-amber-700 rounded-full shadow hover:shadow-md transition font-medium"
+        >
+          {uploading ? '上传中...' : `📷 添加作品`}
+        </button>
         <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleUpload} className="hidden" disabled={uploading} />
       </div>
 
