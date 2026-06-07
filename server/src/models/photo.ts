@@ -55,18 +55,20 @@ async function save(): Promise<void> {
 /** 启动时尝试从 Cloudinary 恢复，本地数据兜底 */
 export async function initFromCloud(): Promise<void> {
   const remote = await restoreJson<PhotoRecord[]>(BACKUP_KEY);
-  if (remote && Array.isArray(remote)) {
+  if (remote && Array.isArray(remote) && remote.length > 0) {
     photos = remote;
-    // 同步写到本地文件
     if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
     fs.writeFileSync(DATA_FILE, JSON.stringify(photos, null, 2), 'utf8');
     console.log(`[数据] 从云端恢复 ${photos.length} 条照片记录`);
   } else {
+    // 本地文件兜底
     load();
     console.log(`[数据] 使用本地数据，共 ${photos.length} 条记录`);
-    // 首次启动也备份一次
+    // 云端没备份但本地有数据 → 立即备份到云端
     if (photos.length > 0) {
-      backupJson(BACKUP_KEY, photos).catch(() => {});
+      backupJson(BACKUP_KEY, photos).catch((err) => {
+        console.error('[数据] 补备份失败:', err.message);
+      });
     }
   }
 }
