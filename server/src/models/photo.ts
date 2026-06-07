@@ -54,39 +54,55 @@ async function save(): Promise<void> {
   }
   fs.writeFileSync(DATA_FILE, JSON.stringify(photos, null, 2), 'utf8');
 
-  // 同步等待云端备份（确保 Render 重启前数据已落盘）
-  try {
-    await backupJson(BACKUP_KEY, photos);
-  } catch (err: any) {
-    console.error('[数据] 云端备份失败:', err.message);
+  // 同步云端备份，最多重试 3 次
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      await backupJson(BACKUP_KEY, photos);
+      return; // 成功
+    } catch (err: any) {
+      console.error(`[数据] 云端备份失败 (第${attempt}次):`, err.message);
+      if (attempt < 3) await new Promise((r) => setTimeout(r, 2000));
+    }
   }
+  console.error('[数据] ⚠️ 云端备份最终失败，数据仅保存在本地磁盘！下次重启可能丢失。');
 }
 
-/** 启动时尝试从 Cloudinary 恢复，本地数据兜底 */
+/** 启动时从云端恢复 + 本地兜底（取数据多的那个） */
 export async function initFromCloud(): Promise<void> {
   const remote = await restoreJson<PhotoRecord[]>(BACKUP_KEY);
-  if (remote && Array.isArray(remote) && remote.length > 0) {
-    // 确保旧记录有 comments 字段
-    let migrated = false;
-    for (const r of remote) {
-      if (!r.comments) { r.comments = []; migrated = true; }
-    }
-    if (migrated) console.log('[数据] 已为旧记录添加 comments 字段');
+  const hasRemote = remote && Array.isArray(remote) && remote.length > 0;
 
+  // 读取本地文件
+  let local: PhotoRecord[] = [];
+  if (fs.existsSync(DATA_FILE)) {
+    try { local = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); } catch {}
+  }
+  if (!Array.isArray(local)) local = [];
+
+  // 决策：用数据量更多的那个
+  if (hasRemote && remote.length >= local.length) {
     photos = remote;
     if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
     fs.writeFileSync(DATA_FILE, JSON.stringify(photos, null, 2), 'utf8');
-    console.log(`[数据] 从云端恢复 ${photos.length} 条照片记录`);
+    console.log(`[数据] 从云端恢复 ${photos.length} 条 (本地${local.length}条)`);
+  } else if (local.length > 0) {
+    photos = local;
+    console.log(`[数据] 使用本地 ${local.length} 条 (云端${remote?.length || 0}条)，补备份`);
+    // 本地更新，立刻同步到云端
+    save().catch(() => {});
   } else {
-    // 本地文件兜底
-    load();
-    console.log(`[数据] 使用本地数据，共 ${photos.length} 条记录`);
-    // 云端没备份但本地有数据 → 立即备份到云端
-    if (photos.length > 0) {
-      backupJson(BACKUP_KEY, photos).catch((err) => {
-        console.error('[数据] 补备份失败:', err.message);
-      });
-    }
+    photos = [];
+    console.log('[数据] 无数据，从零开始');
+  }
+
+  // 补齐旧记录缺失字段
+  let migrated = false;
+  for (const r of photos) {
+    if (!r.comments) { r.comments = []; migrated = true; }
+  }
+  if (migrated) {
+    fs.writeFileSync(DATA_FILE, JSON.stringify(photos, null, 2), 'utf8');
+    console.log('[数据] 已补齐旧记录 comments 字段');
   }
 }
 

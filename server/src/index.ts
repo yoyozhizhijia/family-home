@@ -108,6 +108,20 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
 });
 
+// 深度健康：检查备份一致性
+app.get('/api/health/deep', (req, res) => {
+  const { countPhotos } = require('./models/photo');
+  const { listMembers } = require('./models/member');
+  const memCnt = listMembers().length;
+  const photoCnt = countPhotos();
+  res.json({
+    memory_photos: photoCnt,
+    memory_members: memCnt,
+    site_url: config.siteUrl,
+    cloudinary_connected: !!config.cloudinary.cloudName,
+  });
+});
+
 // 管理员设置公众号菜单
 app.post('/api/admin/set-menu', requireAdmin, async (_req, res) => {
   try {

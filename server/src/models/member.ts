@@ -27,28 +27,42 @@ async function save() {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(MEMBER_FILE, JSON.stringify(members, null, 2), 'utf8');
 
-  try {
-    await backupJson(BACKUP_KEY, members);
-  } catch (err: any) {
-    console.error('[成员] 云端备份失败:', err.message);
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      await backupJson(BACKUP_KEY, members);
+      return;
+    } catch (err: any) {
+      console.error(`[成员] 云端备份失败 (第${attempt}次):`, err.message);
+      if (attempt < 3) await new Promise((r) => setTimeout(r, 2000));
+    }
   }
+  console.error('[成员] ⚠️ 云端备份最终失败！');
 }
 
 /** 启动时从云端恢复 */
 export async function initFromCloud() {
   const remote = await restoreJson<Member[]>(BACKUP_KEY);
-  if (remote && Array.isArray(remote) && remote.length > 0) {
+  const hasRemote = remote && Array.isArray(remote) && remote.length > 0;
+
+  let local: Member[] = [];
+  if (fs.existsSync(MEMBER_FILE)) {
+    try { local = JSON.parse(fs.readFileSync(MEMBER_FILE, 'utf8')); } catch {}
+  }
+  if (!Array.isArray(local)) local = [];
+
+  if (hasRemote && remote.length >= local.length) {
     members = remote;
     const dir = path.dirname(MEMBER_FILE);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(MEMBER_FILE, JSON.stringify(members, null, 2), 'utf8');
-    console.log(`[成员] 从云端恢复 ${members.length} 位成员`);
+    console.log(`[成员] 从云端恢复 ${members.length} 位 (本地${local.length}位)`);
+  } else if (local.length > 0) {
+    members = local;
+    console.log(`[成员] 使用本地 ${local.length} 位 (云端${remote?.length || 0}位)，补备份`);
+    save().catch(() => {});
   } else {
-    load();
-    console.log(`[成员] 使用本地数据，共 ${members.length} 位`);
-    if (members.length > 0) {
-      backupJson(BACKUP_KEY, members).catch(() => {});
-    }
+    members = [];
+    console.log('[成员] 无数据，从零开始');
   }
 }
 
