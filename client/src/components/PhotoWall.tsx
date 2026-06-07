@@ -67,10 +67,10 @@ export default function PhotoWall({ photos, hasMore, loading, onLoadMore, isAdmi
               onClick={() => setLightboxIndex(index)}
             />
 
-            {/* 普通悬浮信息 */}
+            {/* 底部信息：始终可见 */}
             {!isAdmin && (
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none flex items-end justify-between">
-                <p className="text-white text-xs">
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent p-2.5 flex items-end justify-between">
+                <p className="text-white text-[11px] drop-shadow-sm">
                   {photo.uploader_nickname} · {formatDate(photo.uploaded_at)}
                   {photo.category && <span className="ml-1 text-white/70">· {categoryLabel(photo.category)}</span>}
                 </p>
