@@ -160,14 +160,16 @@ export async function backupJson(key: string, data: object): Promise<string> {
 /** 从 Cloudinary 恢复 JSON 数据，失败返回 null */
 export async function restoreJson<T>(key: string): Promise<T | null> {
   ensureInit();
-  // raw 文件直链格式：https://res.cloudinary.com/{cloud}/raw/upload/{public_id}.json
   const url = `https://res.cloudinary.com/${config.cloudinary.cloudName}/raw/upload/${BACKUP_PREFIX}-${key}.json`;
   try {
-    console.log(`[Cloudinary] 尝试恢复: ${url}`);
-    const response = await axios.get(url, { timeout: 15000 });
-    return JSON.parse(response.data);
+    console.log(`[Cloudinary] 尝试恢复: ${key}`);
+    const response = await axios.get(url, { timeout: 15000, responseType: 'text' });
+    const data = JSON.parse(response.data);
+    console.log(`[Cloudinary] ✓ 恢复 ${key} 成功 (${JSON.stringify(data).length} 字节)`);
+    return data;
   } catch (err: any) {
-    console.log(`[Cloudinary] 备份不存在: ${key} (${err.response?.status || err.message})`);
+    const status = err.response?.status || err.code || '?';
+    console.log(`[Cloudinary] ✗ 恢复 ${key} 失败 (${status}): ${err.message}`);
     return null;
   }
 }

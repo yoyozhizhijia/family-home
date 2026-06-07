@@ -150,9 +150,7 @@ function notMemberReplyXml(from: string, to: string): string {
   const now = Math.floor(Date.now() / 1000);
   const content = `👋 你好！你还不是家庭成员，无法上传照片。
 
-请向管理员索取暗号加入我们大家庭～
-
-📱 <a href="${config.siteUrl}">先看看照片墙</a>`;
+请向管理员索取暗号加入我们大家庭～`;
   return wrapTextXml(from, to, now, content);
 }
 
