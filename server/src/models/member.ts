@@ -36,7 +36,7 @@ async function save() {
 /** 启动时从云端恢复 */
 export async function initFromCloud() {
   const remote = await restoreJson<Member[]>(BACKUP_KEY);
-  if (remote && Array.isArray(remote)) {
+  if (remote && Array.isArray(remote) && remote.length > 0) {
     members = remote;
     const dir = path.dirname(MEMBER_FILE);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
