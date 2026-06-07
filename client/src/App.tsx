@@ -2,6 +2,7 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import PortfolioPage from './pages/PortfolioPage';
 import RandomGallery from './pages/RandomGallery';
+import HelpPage from './pages/HelpPage';
 
 export default function App() {
   const location = useLocation();
@@ -47,6 +48,7 @@ export default function App() {
           <Route path="/archive" element={<HomePage />} />
           <Route path="/portfolio/:cat" element={<PortfolioPage />} />
           <Route path="/random" element={<RandomGallery />} />
+          <Route path="/help" element={<HelpPage />} />
         </Routes>
       </main>
 
