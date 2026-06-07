@@ -90,11 +90,21 @@ router.get('/:id', (req: Request, res: Response) => {
   });
 });
 
+// ── 上传鉴权中间件：仅家庭成员/管理员可上传 ───
+function requireFamily(req: Request, res: Response, next: Function) {
+  const token = req.headers.authorization?.replace('Bearer ', '');
+  if (token && verifyToken(token)) {
+    // 管理员 token → 允许上传
+    return next();
+  }
+  res.status(403).json({ error: '只有家庭成员才能上传照片。请先通过公众号加入家庭。' });
+}
+
 /**
  * POST /api/photos/upload
- * 网页端上传照片
+ * 网页端上传照片（需家庭成员身份）
  */
-router.post('/upload', upload.single('photo'), async (req: Request, res: Response) => {
+router.post('/upload', requireFamily, upload.single('photo'), async (req: Request, res: Response) => {
   try {
     if (!req.file) {
       res.status(400).json({ error: '请选择一张照片' });

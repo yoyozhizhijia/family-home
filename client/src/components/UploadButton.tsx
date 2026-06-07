@@ -2,9 +2,10 @@ import { useState, useRef } from 'react';
 
 interface UploadButtonProps {
   onUploaded: () => void;
+  authedFetch: (url: string, options?: RequestInit) => Promise<Response>;
 }
 
-export default function UploadButton({ onUploaded }: UploadButtonProps) {
+export default function UploadButton({ onUploaded, authedFetch }: UploadButtonProps) {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -13,7 +14,7 @@ export default function UploadButton({ onUploaded }: UploadButtonProps) {
   const uploadFile = async (file: File): Promise<boolean> => {
     const formData = new FormData();
     formData.append('photo', file);
-    const res = await fetch('/api/photos/upload', {
+    const res = await authedFetch('/api/photos/upload', {
       method: 'POST',
       body: formData,
     });

@@ -143,7 +143,7 @@ export default function HomePage() {
       />
 
       {/* 网页上传按钮 */}
-      {!admin.isAdmin && <UploadButton onUploaded={refresh} />}
+      {admin.isAdmin && <UploadButton onUploaded={refresh} authedFetch={admin.authedFetch} />}
 
       {/* 管理员登录弹窗 */}
       {admin.showLogin && (
