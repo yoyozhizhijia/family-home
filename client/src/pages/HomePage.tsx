@@ -5,6 +5,7 @@ import UploadButton from '../components/UploadButton';
 import AdminPanel from '../components/AdminPanel';
 import MemberManager from '../components/MemberManager';
 import StorageBadge from '../components/StorageBadge';
+import TodayBanner from '../components/TodayBanner';
 import { usePhotos } from '../hooks/usePhotos';
 import { useAdmin } from '../hooks/useAdmin';
 import type { Photo } from '../hooks/usePhotos';
@@ -138,6 +139,9 @@ export default function HomePage() {
           )}
         </div>
       </div>
+
+      {/* 今日动态 */}
+      <TodayBanner />
 
       {/* 照片墙 */}
       <PhotoWall

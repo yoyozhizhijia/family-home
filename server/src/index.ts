@@ -5,7 +5,7 @@ import fs from 'fs';
 import { config } from './config';
 import wechatRoutes from './routes/wechat';
 import photoRoutes from './routes/photos';
-import { listMonths, countByMonth, dataInitPromise } from './models/photo';
+import { listMonths, countByMonth, dataInitPromise, todayStats } from './models/photo';
 import { verifyCredentials, verifyToken } from './services/authService';
 import { listMembers, upsertMember, removeMember, memberInitPromise } from './models/member';
 import { setCustomMenu, getMenuInfo } from './services/wechatService';
@@ -95,6 +95,12 @@ app.get('/api/months', (_req, res) => {
   const months = listMonths();
   const stats = countByMonth();
   res.json({ months, stats });
+});
+
+// 今日统计（无需登录）
+app.get('/api/today', (_req, res) => {
+  const today = todayStats();
+  res.json(today);
 });
 
 // 健康检查

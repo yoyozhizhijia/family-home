@@ -199,3 +199,41 @@ export function updatePhotoNickname(id: string, nickname: string): PhotoRecord |
   save();
   return photo;
 }
+
+/** 今日统计：新增照片数 + 各作品集新增 + 贡献者 */
+export function todayStats(): {
+  photoCount: number;
+  yoyoCount: number;
+  zhizhiCount: number;
+  everyoneCount: number;
+  uploaders: string[];
+} {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayISO = today.toISOString().substring(0, 10);
+
+  const todayPhotos = photos.filter((p) => p.uploaded_at.startsWith(todayISO));
+
+  const uploaders: string[] = [];
+  let yoyoCount = 0;
+  let zhizhiCount = 0;
+  let everyoneCount = 0;
+
+  for (const p of todayPhotos) {
+    if (p.category === 'yoyo') yoyoCount++;
+    else if (p.category === 'zhizhi') zhizhiCount++;
+    else if (p.category === 'everyone') everyoneCount++;
+
+    if (p.uploader_nickname && !uploaders.includes(p.uploader_nickname)) {
+      uploaders.push(p.uploader_nickname);
+    }
+  }
+
+  return {
+    photoCount: todayPhotos.length,
+    yoyoCount,
+    zhizhiCount,
+    everyoneCount,
+    uploaders,
+  };
+}

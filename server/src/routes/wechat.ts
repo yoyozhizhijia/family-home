@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { verifySignature, parseMessage, handleImageMessage } from '../services/wechatService';
 import { isMember, getMemberNickname, upsertMember } from '../models/member';
+import { todayStats } from '../models/photo';
 import { config } from '../config';
 
 const router = Router();
@@ -95,7 +96,13 @@ router.post('/callback', async (req: Request, res: Response) => {
         res.send(photoSavedReplyXml(msg.fromUserName, msg.toUserName, nickname));
         return;
       } else if (msg.msgType === 'text') {
-        // 文字消息提示发图
+        // 关键词「今日动态」→ 回复今日统计
+        if (msg.content && /^今日动态$/.test(msg.content.trim())) {
+          res.type('text/xml');
+          res.send(todayStatsReplyXml(msg.fromUserName, msg.toUserName));
+          return;
+        }
+        // 其它文字消息提示发图
         res.type('text/xml');
         res.send(textHintReplyXml(msg.fromUserName, msg.toUserName));
         return;
@@ -147,24 +154,68 @@ function notMemberReplyXml(from: string, to: string): string {
 
 function photoSavedReplyXml(from: string, to: string, nickname: string): string {
   const now = Math.floor(Date.now() / 1000);
-  const content = `🎞️ 咔嚓！${nickname}的时光碎片已保存，每一张都值得珍藏`;
-  return `<xml>
-<ToUserName>${from}</ToUserName>
-<FromUserName>${to}</FromUserName>
-<CreateTime>${now}</CreateTime>
-<MsgType>text</MsgType>
-<Content>${content}</Content>
-</xml>`;
+  const msgs = [
+    `🎞️ 咔嚓！${nickname}的时光碎片已保存，每一张都值得珍藏`,
+    `📸 收到${nickname}的美照！已安全存入家庭相册啦～`,
+    `💕 记录下来了！${nickname}的温暖瞬间已上墙，去看看吧`,
+    `🌷 ${nickname}的回忆又添了一页，点链接查看照片墙`,
+    `✨ 太好了！${nickname}的这张照片真好看，已经保存好了`,
+    `🏡 ${nickname}的时光已存入我们的家庭记忆库 💛`,
+    `🎁 ${nickname}又分享了一张美好瞬间，大家快来看看`,
+    `🌈 ${nickname}的照片已上墙，像彩虹一样温暖`,
+    `🍀 收到${nickname}的一份心意，已珍藏到家庭时光`,
+    `🖼️ ${nickname}的画布又添了一笔，照片墙更丰富了`,
+    `💎 如获至宝！${nickname}的这张照片太珍贵了`,
+    `🌻 ${nickname}的分享让今天的照片墙更明亮了`,
+    `🎀 ${nickname}的美好已打包存入时光胶囊`,
+    `📖 家庭相册翻到新一页，感谢${nickname}的分享`,
+    `🕊️ ${nickname}的回忆已轻轻地放在了照片墙上`,
+    `🎵 叮！${nickname}的时光音符已加入家庭乐章`,
+    `⭐ ${nickname}又点亮了照片墙的一颗星`,
+    `🌸 ${nickname}的瞬间已绽放，去照片墙闻闻花香吧`,
+    `🔮 ${nickname}的魔法时刻已封印在照片墙中`,
+    `🎪 精彩！${nickname}的这一刻已登上家庭时光的舞台`,
+  ];
+  const content = `${msgs[Math.floor(Math.random() * msgs.length)]}\n\n📱 <a href="${config.siteUrl}">点我看照片墙</a>`;
+  return wrapTextXml(from, to, now, content);
 }
 
 function textHintReplyXml(from: string, to: string): string {
   const now = Math.floor(Date.now() / 1000);
+  const content = `😊 直接发送照片就可以上传到家庭照片墙啦～\n\n发送「今日动态」可查看今日新增照片\n\n📱 <a href="${config.siteUrl}">点我看照片墙</a>`;
+  return wrapTextXml(from, to, now, content);
+}
+
+function todayStatsReplyXml(from: string, to: string): string {
+  const now = Math.floor(Date.now() / 1000);
+  const stats = todayStats();
+  const parts: string[] = [];
+  parts.push(`📊 今日家庭时光播报\n`);
+
+  if (stats.photoCount === 0) {
+    parts.push(`今天还没有新的照片，期待大家的分享 ✨`);
+  } else {
+    parts.push(`📷 新增 ${stats.photoCount} 张照片`);
+    if (stats.yoyoCount > 0) parts.push(`🎨 悠悠新作品 ${stats.yoyoCount} 件`);
+    if (stats.zhizhiCount > 0) parts.push(`✨ 之之新作品 ${stats.zhizhiCount} 件`);
+    if (stats.everyoneCount > 0) parts.push(`💛 大家新作品 ${stats.everyoneCount} 件`);
+    if (stats.uploaders.length > 0) parts.push(`👤 来自：${stats.uploaders.join('、')}`);
+  }
+
+  parts.push(`\n📱 <a href="${config.siteUrl}">进入照片墙</a>`);
+  parts.push(`🎨 <a href="${config.siteUrl}/portfolio/yoyo">悠悠作品集</a>`);
+  parts.push(`✨ <a href="${config.siteUrl}/portfolio/zhizhi">之之作品集</a>`);
+
+  return wrapTextXml(from, to, now, parts.join('\n'));
+}
+
+function wrapTextXml(from: string, to: string, ts: number, content: string): string {
   return `<xml>
 <ToUserName>${from}</ToUserName>
 <FromUserName>${to}</FromUserName>
-<CreateTime>${now}</CreateTime>
+<CreateTime>${ts}</CreateTime>
 <MsgType>text</MsgType>
-<Content>😊 直接发送照片就可以上传到家庭照片墙啦～\n\n点底部菜单「🏡 家庭时光」查看所有照片</Content>
+<Content>${content}</Content>
 </xml>`;
 }
 
