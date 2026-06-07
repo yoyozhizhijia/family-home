@@ -130,31 +130,20 @@ const BACKUP_PREFIX = 'family-home-data-backup';
 /** 备份 JSON 数据到 Cloudinary（raw 文件），返回访问 URL */
 export async function backupJson(key: string, data: object): Promise<string> {
   ensureInit();
-  const json = Buffer.from(JSON.stringify(data), 'utf8');
+  const jsonStr = JSON.stringify(data);
+  const base64 = Buffer.from(jsonStr).toString('base64');
+  const dataUri = `data:application/json;base64,${base64}`;
 
-  const result: any = await new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(
-      {
-        public_id: `${BACKUP_PREFIX}-${key}`,
-        resource_type: 'raw',
-        overwrite: true,
-        format: 'json',
-      },
-      (error, result) => {
-        if (error) reject(error);
-        else resolve(result);
-      },
-    );
-    const { Readable } = require('stream');
-    const readable = new Readable();
-    readable.push(json);
-    readable.push(null);
-    readable.pipe(stream);
+  const result: any = await cloudinary.uploader.upload(dataUri, {
+    public_id: `${BACKUP_PREFIX}-${key}`,
+    resource_type: 'raw',
+    overwrite: true,
+    format: 'json',
+    invalidate: true,
   });
 
-  const url = result.secure_url;
-  console.log(`[Cloudinary] 备份 ${key}: ${url}`);
-  return url;
+  console.log(`[Cloudinary] 备份 ${key} 成功 (${jsonStr.length} 字节)`);
+  return result.secure_url;
 }
 
 /** 从 Cloudinary 恢复 JSON 数据，失败返回 null */
