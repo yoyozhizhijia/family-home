@@ -11,31 +11,33 @@ export default function App() {
     <div className="min-h-screen bg-amber-50">
       {/* 顶栏 */}
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-amber-200">
-        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-          <a href="/" className="text-xl font-bold text-amber-800 tracking-wide">
+        {/* 标题行 */}
+        <div className="max-w-6xl mx-auto px-4 h-12 flex items-center">
+          <a href="/" className="text-lg sm:text-xl font-bold text-amber-800 tracking-wide">
             🏡 家庭时光机
           </a>
-          <nav className="flex gap-3 text-sm text-amber-700">
-            <a href="/" className={`hover:text-amber-900 transition ${isHome ? 'font-semibold text-amber-900' : ''}`}>
-              照片墙
-            </a>
-            <a href="/portfolio/yoyo" className={`hover:text-amber-900 transition ${location.pathname === '/portfolio/yoyo' ? 'font-semibold text-amber-900' : ''}`}>
-              ✨ 悠悠
-            </a>
-            <a href="/portfolio/zhizhi" className={`hover:text-amber-900 transition ${location.pathname === '/portfolio/zhizhi' ? 'font-semibold text-amber-900' : ''}`}>
-              🎨 之之
-            </a>
-            <a href="/portfolio/everyone" className={`hover:text-amber-900 transition ${location.pathname === '/portfolio/everyone' ? 'font-semibold text-amber-900' : ''}`}>
-              💛 大家
-            </a>
-            <a href="/portfolio/explore" className={`hover:text-amber-900 transition ${location.pathname === '/portfolio/explore' ? 'font-semibold text-amber-900' : ''}`}>
-              🌿 探索
-            </a>
-            <a href="/random" className={`hover:text-amber-900 transition ${location.pathname === '/random' ? 'font-semibold text-amber-900' : ''}`}>
-              🔀 随便看看
-            </a>
-          </nav>
         </div>
+        {/* 导航行：桌面横排，手机横向滚动 */}
+        <nav className="max-w-6xl mx-auto px-2 pb-2 flex gap-1 overflow-x-auto scrollbar-hide text-sm text-amber-700 whitespace-nowrap">
+          <a href="/" className={`px-3 py-1.5 rounded-full transition ${isHome ? 'bg-amber-600 text-white font-semibold' : 'hover:bg-amber-100'}`}>
+            照片墙
+          </a>
+          <a href="/portfolio/yoyo" className={`px-3 py-1.5 rounded-full transition ${location.pathname === '/portfolio/yoyo' ? 'bg-amber-600 text-white font-semibold' : 'hover:bg-amber-100'}`}>
+            ✨ 悠悠
+          </a>
+          <a href="/portfolio/zhizhi" className={`px-3 py-1.5 rounded-full transition ${location.pathname === '/portfolio/zhizhi' ? 'bg-amber-600 text-white font-semibold' : 'hover:bg-amber-100'}`}>
+            🎨 之之
+          </a>
+          <a href="/portfolio/everyone" className={`px-3 py-1.5 rounded-full transition ${location.pathname === '/portfolio/everyone' ? 'bg-amber-600 text-white font-semibold' : 'hover:bg-amber-100'}`}>
+            💛 大家
+          </a>
+          <a href="/portfolio/explore" className={`px-3 py-1.5 rounded-full transition ${location.pathname === '/portfolio/explore' ? 'bg-amber-600 text-white font-semibold' : 'hover:bg-amber-100'}`}>
+            🌿 探索
+          </a>
+          <a href="/random" className={`px-3 py-1.5 rounded-full transition ${location.pathname === '/random' ? 'bg-amber-600 text-white font-semibold' : 'hover:bg-amber-100'}`}>
+            🔀 随便看看
+          </a>
+        </nav>
       </header>
 
       {/* 主体 */}
