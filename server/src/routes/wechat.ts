@@ -4,6 +4,9 @@ import { isMember, getMemberNickname, upsertMember } from '../models/member';
 import { todayStats } from '../models/photo';
 import { config } from '../config';
 
+// 昵称确认暂存：<openid, 等待昵称>
+const pendingNickname = new Map<string, string>();
+
 const router = Router();
 
 /**
@@ -65,17 +68,37 @@ router.post('/callback', async (req: Request, res: Response) => {
         return;
       }
 
-      // 检测暗号：文字消息匹配暗号 → 自动加入白名单
+      // 等待昵称的用户 → 发送文本即为其昵称
+      if (pendingNickname.has(msg.fromUserName)) {
+        if (msg.msgType === 'text' && msg.content) {
+          const nickname = msg.content.trim().slice(0, 20) || '家人';
+          pendingNickname.delete(msg.fromUserName);
+          upsertMember(msg.fromUserName, nickname);
+          console.log(`[微信] 🎉 "${nickname}"(${msg.fromUserName}) 正式加入`);
+          res.type('text/xml');
+          res.send(welcomeReplyXml(msg.fromUserName, msg.toUserName));
+          return;
+        }
+        // 发了图片或其他 → 继续等
+        res.send('success');
+        return;
+      }
+
+      // 暗号匹配 → 反问昵称
       if (
         msg.msgType === 'text' &&
         msg.content &&
         config.joinPassphrase &&
         msg.content.trim() === config.joinPassphrase
       ) {
-        upsertMember(msg.fromUserName, '新家人');
-        console.log(`[微信] 🎉 暗号匹配! ${msg.fromUserName} 已自动加入家庭成员`);
-        res.type('text/xml');
-        res.send(welcomeReplyXml(msg.fromUserName, msg.toUserName));
+        if (isMember(msg.fromUserName)) {
+          res.type('text/xml');
+          res.send(textHintReplyXml(msg.fromUserName, msg.toUserName));
+        } else {
+          pendingNickname.set(msg.fromUserName, '');
+          res.type('text/xml');
+          res.send(askNicknameXml(msg.fromUserName, msg.toUserName));
+        }
         return;
       }
 
@@ -236,5 +259,15 @@ function joinHintReplyXml(from: string, to: string): string {
 （暗号由管理员告知家人）
 
 📱 <a href="${config.siteUrl}">先看看照片墙</a>`;
+  return wrapTextXml(from, to, now, content);
+}
+
+function askNicknameXml(from: string, to: string): string {
+  const now = Math.floor(Date.now() / 1000);
+  const content = `🔑 暗号正确！
+
+请问你是？（填写你的家庭昵称）
+
+例如：妈妈、爸爸、奶奶…`;
   return wrapTextXml(from, to, now, content);
 }

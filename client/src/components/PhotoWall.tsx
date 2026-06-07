@@ -72,6 +72,7 @@ export default function PhotoWall({ photos, hasMore, loading, onLoadMore, isAdmi
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                 <p className="text-white text-xs">
                   {photo.uploader_nickname} · {formatDate(photo.uploaded_at)}
+                  {photo.category && <span className="ml-1 text-white/70">· {categoryLabel(photo.category)}</span>}
                 </p>
               </div>
             )}
@@ -106,7 +107,10 @@ export default function PhotoWall({ photos, hasMore, loading, onLoadMore, isAdmi
                 </div>
                 {/* 底部信息始终可见 */}
                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent p-2">
-                  <p className="text-white text-[10px]">{photo.uploader_nickname}</p>
+                  <p className="text-white text-[10px]">
+                    {photo.uploader_nickname} · {formatDate(photo.uploaded_at)}
+                    {photo.category && <span className="ml-1 text-white/70">· {categoryLabel(photo.category)}</span>}
+                  </p>
                 </div>
               </div>
             )}
@@ -188,4 +192,13 @@ export default function PhotoWall({ photos, hasMore, loading, onLoadMore, isAdmi
 function formatDate(iso: string): string {
   const d = new Date(iso);
   return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
+}
+
+function categoryLabel(cat: string): string {
+  switch (cat) {
+    case 'yoyo': return '✨悠悠';
+    case 'zhizhi': return '🎨之之';
+    case 'everyone': return '💛大家';
+    default: return '';
+  }
 }

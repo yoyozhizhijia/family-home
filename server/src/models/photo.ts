@@ -16,6 +16,14 @@ export interface PhotoRecord {
   width: number;
   height: number;
   category: string;  // 'yoyo' | 'zhizhi' | 'everyone' | '' 作品集分类
+  comments: PhotoComment[];
+}
+
+export interface PhotoComment {
+  id: string;
+  author: string;
+  text: string;
+  created_at: string;
 }
 
 const DATA_FILE = config.db.path;
@@ -56,6 +64,13 @@ async function save(): Promise<void> {
 export async function initFromCloud(): Promise<void> {
   const remote = await restoreJson<PhotoRecord[]>(BACKUP_KEY);
   if (remote && Array.isArray(remote) && remote.length > 0) {
+    // 确保旧记录有 comments 字段
+    let migrated = false;
+    for (const r of remote) {
+      if (!r.comments) { r.comments = []; migrated = true; }
+    }
+    if (migrated) console.log('[数据] 已为旧记录添加 comments 字段');
+
     photos = remote;
     if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
     fs.writeFileSync(DATA_FILE, JSON.stringify(photos, null, 2), 'utf8');
@@ -102,6 +117,7 @@ export function insertPhoto(params: {
     width: params.width || 0,
     height: params.height || 0,
     category: params.category || '',
+    comments: [],
   };
 
   photos.unshift(record); // 最新在前
@@ -238,4 +254,34 @@ export function todayStats(): {
     everyoneCount,
     uploaders,
   };
+}
+
+// ── 评论 ──────────────────────────────────────
+
+/** 添加评论 */
+export function addComment(photoId: string, author: string, text: string): PhotoComment | null {
+  const photo = photos.find((p) => p.id === photoId);
+  if (!photo) return null;
+  if (!photo.comments) photo.comments = [];
+
+  const comment: PhotoComment = {
+    id: `${Date.now()}_${Math.random().toString(36).slice(2, 5)}`,
+    author: author.slice(0, 20) || '家人',
+    text: text.slice(0, 200),
+    created_at: new Date().toISOString(),
+  };
+  photo.comments.push(comment);
+  save();
+  return comment;
+}
+
+/** 删除评论 */
+export function deleteComment(photoId: string, commentId: string): boolean {
+  const photo = photos.find((p) => p.id === photoId);
+  if (!photo?.comments) return false;
+  const idx = photo.comments.findIndex((c) => c.id === commentId);
+  if (idx === -1) return false;
+  photo.comments.splice(idx, 1);
+  save();
+  return true;
 }

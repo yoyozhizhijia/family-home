@@ -10,6 +10,14 @@ export interface Photo {
   width: number;
   height: number;
   category: string;
+  comments: Comment[];
+}
+
+export interface Comment {
+  id: string;
+  author: string;
+  text: string;
+  created_at: string;
 }
 
 interface UsePhotosReturn {
