@@ -121,35 +121,39 @@ export default router;
 // ── 被动回复 XML 模板 ──────────────────────
 function helpReplyXml(from: string, to: string): string {
   const now = Math.floor(Date.now() / 1000);
-  return `<xml>
-<ToUserName>${from}</ToUserName>
-<FromUserName>${to}</FromUserName>
-<CreateTime>${now}</CreateTime>
-<MsgType>text</MsgType>
-<Content>📷 发送照片即可上传到家庭照片墙\n\n🔑 新家人先发暗号加入\n\n🏡 点「家庭时光」查看照片墙\n\n❤️ 记录我们的美好时光</Content>
-</xml>`;
+  const content = `📷 发送照片即可上传到家庭照片墙
+
+🔑 新家人先发暗号加入
+📊 发「今日动态」查看最新分享
+
+📱 <a href="${config.siteUrl}">进入照片墙</a>
+
+❤️ 记录我们的美好时光`;
+  return wrapTextXml(from, to, now, content);
 }
 
 function welcomeReplyXml(from: string, to: string): string {
   const now = Math.floor(Date.now() / 1000);
-  return `<xml>
-<ToUserName>${from}</ToUserName>
-<FromUserName>${to}</FromUserName>
-<CreateTime>${now}</CreateTime>
-<MsgType>text</MsgType>
-<Content>🎉 欢迎加入家庭时光！\n\n从现在开始，你发的每张照片都会自动保存到我们的家庭照片墙。\n\n点底部菜单「🏡 家庭时光」即可查看！</Content>
-</xml>`;
+  const content = `🎉 欢迎加入家庭时光！
+
+从现在开始，你发的每张照片都会自动保存到我们的家庭照片墙。
+
+📱 <a href="${config.siteUrl}">点击查看照片墙</a>
+🎨 <a href="${config.siteUrl}/portfolio/yoyo">悠悠作品集</a>
+✨ <a href="${config.siteUrl}/portfolio/zhizhi">之之作品集</a>
+
+发「今日动态」随时了解最新分享 ❤️`;
+  return wrapTextXml(from, to, now, content);
 }
 
 function notMemberReplyXml(from: string, to: string): string {
   const now = Math.floor(Date.now() / 1000);
-  return `<xml>
-<ToUserName>${from}</ToUserName>
-<FromUserName>${to}</FromUserName>
-<CreateTime>${now}</CreateTime>
-<MsgType>text</MsgType>
-<Content>👋 你好！你还不是家庭成员，无法上传照片。\n\n请发送暗号加入我们大家庭～</Content>
-</xml>`;
+  const content = `👋 你好！你还不是家庭成员，无法上传照片。
+
+请向管理员索取暗号加入我们大家庭～
+
+📱 <a href="${config.siteUrl}">先看看照片墙</a>`;
+  return wrapTextXml(from, to, now, content);
 }
 
 function photoSavedReplyXml(from: string, to: string, nickname: string): string {
@@ -196,8 +200,8 @@ function todayStatsReplyXml(from: string, to: string): string {
     parts.push(`今天还没有新的照片，期待大家的分享 ✨`);
   } else {
     parts.push(`📷 新增 ${stats.photoCount} 张照片`);
-    if (stats.yoyoCount > 0) parts.push(`🎨 悠悠新作品 ${stats.yoyoCount} 件`);
-    if (stats.zhizhiCount > 0) parts.push(`✨ 之之新作品 ${stats.zhizhiCount} 件`);
+    if (stats.yoyoCount > 0) parts.push(`✨ 悠悠新作品 ${stats.yoyoCount} 件`);
+    if (stats.zhizhiCount > 0) parts.push(`🎨 之之新作品 ${stats.zhizhiCount} 件`);
     if (stats.everyoneCount > 0) parts.push(`💛 大家新作品 ${stats.everyoneCount} 件`);
     if (stats.uploaders.length > 0) parts.push(`👤 来自：${stats.uploaders.join('、')}`);
   }
@@ -221,22 +225,18 @@ function wrapTextXml(from: string, to: string, ts: number, content: string): str
 
 function uploadHintReplyXml(from: string, to: string): string {
   const now = Math.floor(Date.now() / 1000);
-  return `<xml>
-<ToUserName>${from}</ToUserName>
-<FromUserName>${to}</FromUserName>
-<CreateTime>${now}</CreateTime>
-<MsgType>text</MsgType>
-<Content>📷 直接发送照片到对话框，就能自动保存到我们的家庭照片墙！</Content>
-</xml>`;
+  const content = `📷 直接发送照片到对话框，就能自动保存到我们的家庭照片墙！
+
+📱 <a href="${config.siteUrl}">查看照片墙</a>`;
+  return wrapTextXml(from, to, now, content);
 }
 
 function joinHintReplyXml(from: string, to: string): string {
   const now = Math.floor(Date.now() / 1000);
-  return `<xml>
-<ToUserName>${from}</ToUserName>
-<FromUserName>${to}</FromUserName>
-<CreateTime>${now}</CreateTime>
-<MsgType>text</MsgType>
-<Content>🔑 发送暗号即可加入家庭，之后发照片自动上墙！\n\n（暗号由管理员告知家人）</Content>
-</xml>`;
+  const content = `🔑 发送暗号即可加入家庭，之后发照片自动上墙！
+
+（暗号由管理员告知家人）
+
+📱 <a href="${config.siteUrl}">先看看照片墙</a>`;
+  return wrapTextXml(from, to, now, content);
 }

@@ -111,18 +111,6 @@ export default function HomePage() {
               </button>
               <StorageBadge authedFetch={admin.authedFetch} />
               <button
-                onClick={async () => {
-                  try {
-                    const res = await admin.authedFetch('/api/admin/set-menu', { method: 'POST' });
-                    if (res.ok) alert('✅ 菜单已刷新');
-                    else alert('❌ 刷新失败');
-                  } catch { alert('❌ 网络错误'); }
-                }}
-                className="px-3 py-1.5 text-xs rounded-full bg-purple-100 text-purple-700 hover:bg-purple-200 transition"
-              >
-                📋 刷新菜单
-              </button>
-              <button
                 onClick={admin.logout}
                 className="px-3 py-1.5 text-xs rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition"
               >
