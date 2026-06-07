@@ -126,8 +126,7 @@ function helpReplyXml(from: string, to: string): string {
 🔑 新家人先发暗号加入
 📊 发「今日动态」查看最新分享
 
-📱 进入照片墙
-${config.siteUrl}
+📱 <a href="${config.siteUrl}">进入照片墙</a>
 
 ❤️ 记录我们的美好时光`;
   return wrapTextXml(from, to, now, content);
@@ -139,12 +138,9 @@ function welcomeReplyXml(from: string, to: string): string {
 
 从现在开始，你发的每张照片都会自动保存到我们的家庭照片墙。
 
-📱 点击查看照片墙
-${config.siteUrl}
-🎨 悠悠作品集
-${config.siteUrl}/portfolio/yoyo
-✨ 之之作品集
-${config.siteUrl}/portfolio/zhizhi
+📱 <a href="${config.siteUrl}">点击查看照片墙</a>
+🎨 <a href="${config.siteUrl}/portfolio/yoyo">悠悠作品集</a>
+✨ <a href="${config.siteUrl}/portfolio/zhizhi">之之作品集</a>
 
 发「今日动态」随时了解最新分享 ❤️`;
   return wrapTextXml(from, to, now, content);
@@ -156,8 +152,7 @@ function notMemberReplyXml(from: string, to: string): string {
 
 请向管理员索取暗号加入我们大家庭～
 
-📱 先看看照片墙
-${config.siteUrl}`;
+📱 <a href="${config.siteUrl}">先看看照片墙</a>`;
   return wrapTextXml(from, to, now, content);
 }
 
@@ -191,8 +186,7 @@ function photoSavedReplyXml(from: string, to: string, nickname: string): string 
 
 function textHintReplyXml(from: string, to: string): string {
   const now = Math.floor(Date.now() / 1000);
-  const content = `😊 直接发送照片就可以上传到家庭照片墙啦～\n\n发送「今日动态」可查看今日新增照片\n\n📱 照片墙
-${config.siteUrl}`;
+  const content = `😊 直接发送照片就可以上传到家庭照片墙啦～\n\n发送「今日动态」可查看今日新增照片\n\n📱 <a href="${config.siteUrl}">点我看照片墙</a>`;
   return wrapTextXml(from, to, now, content);
 }
 
@@ -212,12 +206,9 @@ function todayStatsReplyXml(from: string, to: string): string {
     if (stats.uploaders.length > 0) parts.push(`👤 来自：${stats.uploaders.join('、')}`);
   }
 
-  parts.push(`\n📱 进入照片墙
-${config.siteUrl}`);
-  parts.push(`🎨 悠悠作品集
-${config.siteUrl}/portfolio/yoyo`);
-  parts.push(`✨ 之之作品集
-${config.siteUrl}/portfolio/zhizhi`);
+  parts.push(`\n📱 <a href="${config.siteUrl}">进入照片墙</a>`);
+  parts.push(`🎨 <a href="${config.siteUrl}/portfolio/yoyo">悠悠作品集</a>`);
+  parts.push(`✨ <a href="${config.siteUrl}/portfolio/zhizhi">之之作品集</a>`);
 
   return wrapTextXml(from, to, now, parts.join('\n'));
 }
@@ -236,8 +227,7 @@ function uploadHintReplyXml(from: string, to: string): string {
   const now = Math.floor(Date.now() / 1000);
   const content = `📷 直接发送照片到对话框，就能自动保存到我们的家庭照片墙！
 
-📱 查看照片墙
-${config.siteUrl}`;
+📱 <a href="${config.siteUrl}">查看照片墙</a>`;
   return wrapTextXml(from, to, now, content);
 }
 
@@ -247,7 +237,6 @@ function joinHintReplyXml(from: string, to: string): string {
 
 （暗号由管理员告知家人）
 
-📱 先看看照片墙
-${config.siteUrl}`;
+📱 <a href="${config.siteUrl}">先看看照片墙</a>`;
   return wrapTextXml(from, to, now, content);
 }
