@@ -46,10 +46,10 @@ router.post('/callback', async (req: Request, res: Response) => {
   });
 
   req.on('end', async () => {
-    // 辅助：发送 XML 被动回复
+    // Express 标准 XML 被动回复
     const xmlReply = (xmlStr: string) => {
-      res.writeHead(200, { 'Content-Type': 'text/xml; charset=utf-8' });
-      res.end(xmlStr);
+      res.setHeader('Content-Type', 'text/xml; charset=utf-8');
+      res.status(200).send(xmlStr);
     };
     try {
       const msg = await parseMessage(xml);
@@ -123,12 +123,15 @@ router.post('/callback', async (req: Request, res: Response) => {
         return;
       }
 
-      // 处理图片消息
+      // 处理图片消息：先回确认，再异步处理（避免微信超时丢弃回复）
       if (msg.msgType === 'image') {
         const nickname = getMemberNickname(msg.fromUserName) || '家人';
-        const result = await handleImageMessage(msg, nickname);
-        console.log(`[微信] 图片已保存: ${result.id}`);
+        // 立即回复确认语句
         xmlReply(photoSavedReplyXml(msg.fromUserName, msg.toUserName, nickname));
+        // 后台异步处理图片下载+压缩+上传
+        handleImageMessage(msg, nickname)
+          .then((result) => console.log(`[微信] 图片已保存: ${result.id}`))
+          .catch((err) => console.error('[微信] 图片处理失败:', err.message));
         return;
       } else if (msg.msgType === 'text') {
         // 关键词「今日动态」→ 回复今日统计
