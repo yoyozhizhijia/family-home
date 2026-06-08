@@ -112,7 +112,12 @@ export async function initFromCloud(): Promise<void> {
 // 导出初始化 Promise，供 server 启动前等待
 export const dataInitPromise = initFromCloud();
 
-/** 插入照片记录 */
+// 批量上传交错：记录最后一次插入的时间戳和计数
+let lastInsertTs = 0;
+let lastInsertSource = '';
+let batchCounter = 0;
+
+/** 插入照片记录 — 批量上传时自动交错到已有照片中 */
 export async function insertPhoto(params: {
   originalPath: string;
   thumbnailPath: string;
@@ -141,7 +146,25 @@ export async function insertPhoto(params: {
     comments: [],
   };
 
-  photos.unshift(record); // 最新在前
+  // 批量上传交错逻辑：同一来源 3 秒内连续上传超过 3 张时，自动分散插入
+  const source = params.uploaderOpenId || params.uploaderNickname || '';
+  const sinceLast = now.getTime() - lastInsertTs;
+  if (source && sinceLast < 3000 && source === lastInsertSource) {
+    batchCounter++;
+  } else {
+    batchCounter = 0;
+  }
+  lastInsertTs = now.getTime();
+  lastInsertSource = source;
+
+  if (batchCounter >= 3) {
+    // 交错插入：每第 N 张插到第 N*3 的位置
+    const offset = Math.min((batchCounter - 3) * 3, photos.length);
+    photos.splice(offset, 0, record);
+  } else {
+    photos.unshift(record);
+  }
+
   await save();
   return record;
 }
