@@ -137,6 +137,35 @@ app.post('/api/admin/force-backup', requireAdmin, async (_req, res) => {
   }
 });
 
+// 管理员导出备份数据 (JSON下载)
+app.get('/api/admin/export', requireAdmin, (_req, res) => {
+  const { listPhotos } = require('./models/photo');
+  const { listMembers } = require('./models/member');
+  const photos = listPhotos({ pageSize: 99999 }).photos;
+  const members = listMembers();
+
+  const exportData = {
+    exported_at: new Date().toISOString(),
+    stats: {
+      photos: photos.length,
+      members: members.length,
+    },
+    photos: photos.map((p: any) => ({
+      id: p.id,
+      uploader_nickname: p.uploader_nickname,
+      category: p.category || '',
+      uploaded_at: p.uploaded_at,
+      original_url: p.original_url,
+      comments: p.comments || [],
+    })),
+    members,
+  };
+
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Content-Disposition', `attachment; filename=family-backup-${new Date().toISOString().slice(0,10)}.json`);
+  res.json(exportData);
+});
+
 // 管理员设置公众号菜单
 app.post('/api/admin/set-menu', requireAdmin, async (_req, res) => {
   try {

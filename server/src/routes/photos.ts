@@ -114,6 +114,7 @@ router.post('/upload', upload.single('photo'), async (req: Request, res: Respons
     }
 
     const category = (req.body.category as string) || '';
+    const nickname = (req.body.uploader as string)?.trim() || '';
 
     // 普通照片上传（无作品集分类）→ 需管理员身份
     if (!category) {
@@ -124,7 +125,7 @@ router.post('/upload', upload.single('photo'), async (req: Request, res: Respons
       }
     }
 
-    const photo = await processUpload(req.file, category);
+    const photo = await processUpload(req.file, category, nickname);
 
     res.json({
       id: photo.id,

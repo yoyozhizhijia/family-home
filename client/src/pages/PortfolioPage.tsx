@@ -28,6 +28,7 @@ export default function PortfolioPage() {
   const { photos, total, hasMore, loading, loadMore, refresh } = usePhotos(undefined, info.key);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [uploaderName, setUploaderName] = useState('');
   const [message, setMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const loaderRef = useRef<HTMLDivElement>(null);
@@ -53,6 +54,7 @@ export default function PortfolioPage() {
         const formData = new FormData();
         formData.append('photo', files[i]);
         formData.append('category', info.key);
+        if (uploaderName.trim()) formData.append('uploader', uploaderName.trim());
         const res = await fetch('/api/photos/upload', { method: 'POST', body: formData });
         if (res.ok) success++; else fail++;
       } catch { fail++; }
