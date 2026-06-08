@@ -161,9 +161,9 @@ app.get('/api/admin/export', requireAdmin, (_req, res) => {
     members,
   };
 
-  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
   res.setHeader('Content-Disposition', `attachment; filename=family-backup-${new Date().toISOString().slice(0,10)}.json`);
-  res.json(exportData);
+  res.send(JSON.stringify(exportData, null, 2));
 });
 
 // 管理员设置公众号菜单
