@@ -304,6 +304,52 @@ export function todayStats(): {
   };
 }
 
+/** 昨日统计 */
+export function yesterdayStats(): typeof todayStats extends () => infer R ? R : never {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  d.setHours(0, 0, 0, 0);
+  const start = d.toISOString().substring(0, 10);
+  d.setHours(23, 59, 59, 999);
+  return makeStats(start, d.toISOString().substring(0, 10));
+}
+
+/** 本周统计（周一至今天） */
+export function weekStats(): typeof todayStats extends () => infer R ? R : never {
+  const d = new Date();
+  const day = d.getDay();
+  const monday = new Date(d);
+  monday.setDate(d.getDate() - ((day + 6) % 7));
+  monday.setHours(0, 0, 0, 0);
+  const start = monday.toISOString().substring(0, 10);
+  const end = d.toISOString().substring(0, 10);
+  return makeStats(start, end);
+}
+
+/** 通用时间范围统计 */
+function makeStats(start: string, end: string) {
+  const rangePhotos = photos.filter((p) => {
+    const date = p.uploaded_at.substring(0, 10);
+    return date >= start && date <= end;
+  });
+
+  const uploaders: string[] = [];
+  let yoyoCount = 0, zhizhiCount = 0, everyoneCount = 0, exploreCount = 0;
+
+  for (const p of rangePhotos) {
+    if (p.category === 'yoyo') yoyoCount++;
+    else if (p.category === 'zhizhi') zhizhiCount++;
+    else if (p.category === 'everyone') everyoneCount++;
+    else if (p.category === 'explore') exploreCount++;
+    if (p.uploader_nickname && !uploaders.includes(p.uploader_nickname)) uploaders.push(p.uploader_nickname);
+  }
+
+  return {
+    photoCount: rangePhotos.length,
+    yoyoCount, zhizhiCount, everyoneCount, exploreCount, uploaders,
+  };
+}
+
 // ── 评论 ──────────────────────────────────────
 
 /** 添加评论 */

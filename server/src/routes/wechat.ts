@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import express from 'express';
 import { verifySignature, parseMessage, handleImageMessage } from '../services/wechatService';
 import { isMember, getMemberNickname, upsertMember } from '../models/member';
-import { todayStats } from '../models/photo';
+import { todayStats, yesterdayStats, weekStats } from '../models/photo';
 import { config } from '../config';
 
 // 昵称确认暂存：<openid, 等待昵称>
@@ -128,9 +128,18 @@ router.post('/callback', express.text({ type: 'text/xml' }), async (req: Request
           .catch((err) => console.error('[微信] 图片处理失败:', err.message));
         return;
       } else if (msg.msgType === 'text') {
-        // 关键词「今日动态」→ 回复今日统计
-        if (msg.content && /^今日动态$/.test(msg.content.trim())) {
-          xmlReply(todayStatsReplyXml(msg.fromUserName, msg.toUserName));
+        // 关键词播报：今日/昨日/本周动态
+        const text = (msg.content || '').trim();
+        if (text === '今日动态') {
+          xmlReply(statsReplyXml(msg.fromUserName, msg.toUserName, 'today'));
+          return;
+        }
+        if (text === '昨日动态') {
+          xmlReply(statsReplyXml(msg.fromUserName, msg.toUserName, 'yesterday'));
+          return;
+        }
+        if (text === '本周动态') {
+          xmlReply(statsReplyXml(msg.fromUserName, msg.toUserName, 'week'));
           return;
         }
         // 其它文字消息提示发图
@@ -153,7 +162,7 @@ function helpReplyXml(from: string, to: string): string {
   const content = `📷 发送照片即可上传到家庭照片墙
 
 🔑 新家人先发暗号加入
-📊 发「今日动态」查看最新分享
+📊 发「今日动态 / 昨日动态 / 本周动态」查看最新分享
 
 📱 进入照片墙\n${config.siteUrl}
 
@@ -223,20 +232,37 @@ ${config.siteUrl}/help`;
 
 function textHintReplyXml(from: string, to: string): string {
   const now = Math.floor(Date.now() / 1000);
-  const content = `😊 直接发送照片就可以上传到家庭照片墙啦～\n\n发送「今日动态」可查看今日新增照片\n\n📱 进入照片墙
+  const content = `😊 直接发送照片就可以上传到家庭照片墙啦～\n\n发送「今日动态 / 昨日动态 / 本周动态」查看播报\n\n📱 进入照片墙
 ${config.siteUrl}\n📖 操作手册
 ${config.siteUrl}/help`;
   return wrapTextXml(from, to, now, content);
 }
 
-function todayStatsReplyXml(from: string, to: string): string {
+function statsReplyXml(from: string, to: string, period: string): string {
   const now = Math.floor(Date.now() / 1000);
-  const stats = todayStats();
+  let stats: ReturnType<typeof todayStats>;
+  let label: string;
+  let emptyMsg: string;
+
+  if (period === 'yesterday') {
+    stats = yesterdayStats();
+    label = '昨日';
+    emptyMsg = '昨天没有新的照片，期待今天的分享 ✨';
+  } else if (period === 'week') {
+    stats = weekStats();
+    label = '本周';
+    emptyMsg = '本周还没有新的照片，大家快来分享 ✨';
+  } else {
+    stats = todayStats();
+    label = '今日';
+    emptyMsg = '今天还没有新的照片，期待大家的分享 ✨';
+  }
+
   const parts: string[] = [];
-  parts.push(`📊 今日家庭时光机播报\n`);
+  parts.push(`📊 ${label}家庭时光机播报\n`);
 
   if (stats.photoCount === 0) {
-    parts.push(`今天还没有新的照片，期待大家的分享 ✨`);
+    parts.push(emptyMsg);
   } else {
     parts.push(`📷 新增 ${stats.photoCount} 张照片`);
     if (stats.yoyoCount > 0) parts.push(`✨ 悠悠新作品 ${stats.yoyoCount} 件`);
