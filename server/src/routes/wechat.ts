@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import express from 'express';
 import { verifySignature, parseMessage, handleImageMessage } from '../services/wechatService';
 import { isMember, getMemberNickname, upsertMember } from '../models/member';
 import { todayStats } from '../models/photo';
@@ -36,17 +37,10 @@ router.get('/callback', (req: Request, res: Response) => {
 
 /**
  * POST /api/wechat/callback
- * 接收微信推送的消息（包括图片消息）
+ * 接收微信推送的消息。使用 express.text() 读取原始 XML body，避免 req.on('data/end') 异步竞争。
  */
-router.post('/callback', async (req: Request, res: Response) => {
-  let xml = '';
-
-  req.on('data', (chunk: Buffer) => {
-    xml += chunk.toString('utf8');
-  });
-
-  req.on('end', async () => {
-    // Express 标准 XML 被动回复
+router.post('/callback', express.text({ type: 'text/xml' }), async (req: Request, res: Response) => {
+    const xml = req.body || '';
     const xmlReply = (xmlStr: string) => {
       res.setHeader('Content-Type', 'text/xml; charset=utf-8');
       res.status(200).send(xmlStr);
@@ -149,7 +143,6 @@ router.post('/callback', async (req: Request, res: Response) => {
       console.error('[微信] 处理消息出错:', err);
       res.send('success');
     }
-  });
 });
 
 export default router;
