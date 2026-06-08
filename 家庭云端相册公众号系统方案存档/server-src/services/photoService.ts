@@ -30,9 +30,10 @@ export async function processImageBuffer(
 export async function processUpload(
   file: Express.Multer.File,
   category?: string,
+  nickname?: string,
 ): Promise<PhotoRecord> {
   const buffer = fs.readFileSync(file.path);
   try { fs.unlinkSync(file.path); } catch {}
 
-  return processImageBuffer(buffer, 'web', '家人', category);
+  return processImageBuffer(buffer, 'web', nickname || '家人', category);
 }

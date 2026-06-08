@@ -17,11 +17,21 @@
 
 ## 项目统计
 
-- 代码行数：~3000 行（server + client）
-- 后端语言：TypeScript (Express)
-- 前端框架：React + TailwindCSS + Vite
-- 图片存储：Cloudinary 25GB
-- 总成本：¥0/月（永久免费）
+| 项目 | 数值 |
+|---|---|
+| 代码行数 | ~3500 行（server + client） |
+| 后端语言 | TypeScript (Express) |
+| 前端框架 | React + TailwindCSS + Vite |
+| 图片存储 | Cloudinary 25GB |
+| 总成本 | ¥0/月（永久免费） |
+| 最新版本 | V1.1 |
+
+## 版本说明
+
+| 版本 | 主要特性 |
+|---|---|
+| V1.0 | 双列瀑布流、四作品集、微信消息去重、Cloudinary永久存储、暗号昵称加入、照片留言、导出备份 |
+| V1.1 | 管理员修改密码、一键导出JSON、批量上传交错、左右滑动切换照片、中国时区、昨日/本周播报关键词 |
 
 ## 适用场景
 

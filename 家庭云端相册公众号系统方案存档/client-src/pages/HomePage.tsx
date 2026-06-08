@@ -6,6 +6,7 @@ import AdminPanel from '../components/AdminPanel';
 import MemberManager from '../components/MemberManager';
 import StorageBadge from '../components/StorageBadge';
 import TodayBanner from '../components/TodayBanner';
+import ChangePassword from '../components/ChangePassword';
 import { usePhotos } from '../hooks/usePhotos';
 import { useAdmin } from '../hooks/useAdmin';
 import type { Photo } from '../hooks/usePhotos';
@@ -27,6 +28,7 @@ export default function HomePage() {
   const [months, setMonths] = useState<MonthStat[]>([]);
   const [selectedMonth, setSelectedMonth] = useState<string>('');
   const [showMembers, setShowMembers] = useState(false);
+  const [showChangePwd, setShowChangePwd] = useState(false);
 
   const admin = useAdmin();
 
@@ -69,6 +71,23 @@ export default function HomePage() {
     }
   }, [admin.authedFetch, refresh]);
 
+  // 导出备份
+  const handleExport = useCallback(async () => {
+    try {
+      const res = await admin.authedFetch('/api/admin/export');
+      if (!res.ok) throw new Error('导出失败');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `family-backup-${new Date().toISOString().slice(0,10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch { alert('导出失败'); }
+  }, [admin.authedFetch]);
+
   return (
     <div>
       {/* 月份筛选条 */}
@@ -110,6 +129,18 @@ export default function HomePage() {
                 👨‍👩‍👧‍👦 成员
               </button>
               <StorageBadge authedFetch={admin.authedFetch} />
+              <button
+                onClick={handleExport}
+                className="px-3 py-1.5 text-xs rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 transition"
+              >
+                📥 导出
+              </button>
+              <button
+                onClick={() => setShowChangePwd(true)}
+                className="px-3 py-1.5 text-xs rounded-full bg-orange-100 text-orange-700 hover:bg-orange-200 transition"
+              >
+                🔐 改密
+              </button>
               <button
                 onClick={admin.logout}
                 className="px-3 py-1.5 text-xs rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition"
@@ -159,6 +190,14 @@ export default function HomePage() {
         <MemberManager
           authedFetch={admin.authedFetch}
           onClose={() => setShowMembers(false)}
+        />
+      )}
+
+      {/* 改密弹窗 */}
+      {showChangePwd && (
+        <ChangePassword
+          authedFetch={admin.authedFetch}
+          onClose={() => setShowChangePwd(false)}
         />
       )}
     </div>

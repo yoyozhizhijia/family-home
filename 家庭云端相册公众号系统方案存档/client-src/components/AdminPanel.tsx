@@ -20,6 +20,7 @@ export default function AdminPanel({ onLogin, error, onClose }: AdminPanelProps)
     if (ok) {
       setUsername('');
       setPassword('');
+      onClose();  // 登录成功自动关闭弹窗
     }
   };
 

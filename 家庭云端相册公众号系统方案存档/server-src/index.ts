@@ -11,6 +11,8 @@ import { listMembers, upsertMember, removeMember, memberInitPromise } from './mo
 import { setCustomMenu, getMenuInfo } from './services/wechatService';
 import { getStorageUsage } from './services/cloudinaryService';
 
+import { getCredentials, updateCredentials } from './models/adminConfig';
+
 // 管理员鉴权中间件
 function requireAdmin(req: express.Request, res: express.Response, next: express.NextFunction) {
   const token = req.headers.authorization?.replace('Bearer ', '');
@@ -50,6 +52,21 @@ app.post('/api/admin/login', (req, res) => {
     return;
   }
   res.json({ token });
+});
+
+// 修改管理员密码
+app.patch('/api/admin/password', requireAdmin, (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password) {
+    res.status(400).json({ error: '账号和密码不能为空' });
+    return;
+  }
+  if (password.length < 4) {
+    res.status(400).json({ error: '密码至少4位' });
+    return;
+  }
+  updateCredentials(username, password);
+  res.json({ success: true, message: '密码已更新' });
 });
 
 // ── 家庭成员管理（管理员） ──────────────────────
@@ -135,6 +152,35 @@ app.post('/api/admin/force-backup', requireAdmin, async (_req, res) => {
   } catch (err: any) {
     res.status(500).json({ error: err.message, stack: err.stack });
   }
+});
+
+// 管理员导出备份数据 (JSON下载)
+app.get('/api/admin/export', requireAdmin, (_req, res) => {
+  const { listPhotos } = require('./models/photo');
+  const { listMembers } = require('./models/member');
+  const photos = listPhotos({ pageSize: 99999 }).photos;
+  const members = listMembers();
+
+  const exportData = {
+    exported_at: new Date().toISOString(),
+    stats: {
+      photos: photos.length,
+      members: members.length,
+    },
+    photos: photos.map((p: any) => ({
+      id: p.id,
+      uploader_nickname: p.uploader_nickname,
+      category: p.category || '',
+      uploaded_at: p.uploaded_at,
+      original_url: p.original_url,
+      comments: p.comments || [],
+    })),
+    members,
+  };
+
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename=family-backup-${new Date().toISOString().slice(0,10)}.json`);
+  res.send(JSON.stringify(exportData, null, 2));
 });
 
 // 管理员设置公众号菜单

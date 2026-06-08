@@ -112,7 +112,25 @@ export async function initFromCloud(): Promise<void> {
 // 导出初始化 Promise，供 server 启动前等待
 export const dataInitPromise = initFromCloud();
 
-/** 插入照片记录 */
+// ── 中国时区工具 ──────────────────────────────
+function chinaNow(): Date {
+  const d = new Date();
+  d.setHours(d.getHours() + 8);
+  return d;
+}
+function chinaDateStr(): string {
+  return chinaNow().toISOString().substring(0, 10);
+}
+function chinaISO(): string {
+  return chinaNow().toISOString();
+}
+
+// 批量上传交错：记录最后一次插入的时间戳和计数
+let lastInsertTs = 0;
+let lastInsertSource = '';
+let batchCounter = 0;
+
+/** 插入照片记录 — 批量上传时自动交错到已有照片中 */
 export async function insertPhoto(params: {
   originalPath: string;
   thumbnailPath: string;
@@ -133,15 +151,33 @@ export async function insertPhoto(params: {
     thumbnail_url: params.thumbnailUrl,
     uploader_openid: params.uploaderOpenId || '',
     uploader_nickname: params.uploaderNickname || '家人',
-    uploaded_at: now.toISOString(),
-    month_key: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`,
+    uploaded_at: chinaISO(),
+    month_key: `${chinaDateStr().substring(0,7)}`,
     width: params.width || 0,
     height: params.height || 0,
     category: params.category || '',
     comments: [],
   };
 
-  photos.unshift(record); // 最新在前
+  // 批量上传交错逻辑：同一来源 3 秒内连续上传超过 3 张时，自动分散插入
+  const source = params.uploaderOpenId || params.uploaderNickname || '';
+  const sinceLast = now.getTime() - lastInsertTs;
+  if (source && sinceLast < 3000 && source === lastInsertSource) {
+    batchCounter++;
+  } else {
+    batchCounter = 0;
+  }
+  lastInsertTs = now.getTime();
+  lastInsertSource = source;
+
+  if (batchCounter >= 3) {
+    // 交错插入：每第 N 张插到第 N*3 的位置
+    const offset = Math.min((batchCounter - 3) * 3, photos.length);
+    photos.splice(offset, 0, record);
+  } else {
+    photos.unshift(record);
+  }
+
   await save();
   return record;
 }
@@ -239,7 +275,7 @@ export async function updatePhotoNickname(id: string, nickname: string): Promise
   return photo;
 }
 
-/** 今日统计：新增照片数 + 各作品集新增 + 贡献者 */
+/** 今日统计 */
 export function todayStats(): {
   photoCount: number;
   yoyoCount: number;
@@ -248,36 +284,48 @@ export function todayStats(): {
   exploreCount: number;
   uploaders: string[];
 } {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const todayISO = today.toISOString().substring(0, 10);
+  const today = chinaDateStr();
+  return makeStats(today, today);
+}
 
-  const todayPhotos = photos.filter((p) => p.uploaded_at.startsWith(todayISO));
+/** 昨日统计 */
+export function yesterdayStats(): ReturnType<typeof makeStats> {
+  const d = chinaNow();
+  d.setDate(d.getDate() - 1);
+  const day = d.toISOString().substring(0, 10);
+  return makeStats(day, day);
+}
+
+/** 本周统计（周一至今天） */
+export function weekStats(): ReturnType<typeof makeStats> {
+  const d = chinaNow();
+  const dayOfWeek = d.getDay();
+  const monday = new Date(d);
+  monday.setDate(d.getDate() - ((dayOfWeek + 6) % 7));
+  return makeStats(monday.toISOString().substring(0, 10), d.toISOString().substring(0, 10));
+}
+
+/** 通用时间范围统计 */
+function makeStats(start: string, end: string) {
+  const rangePhotos = photos.filter((p) => {
+    const date = p.uploaded_at.substring(0, 10);
+    return date >= start && date <= end;
+  });
 
   const uploaders: string[] = [];
-  let yoyoCount = 0;
-  let zhizhiCount = 0;
-  let everyoneCount = 0;
-  let exploreCount = 0;
+  let yoyoCount = 0, zhizhiCount = 0, everyoneCount = 0, exploreCount = 0;
 
-  for (const p of todayPhotos) {
+  for (const p of rangePhotos) {
     if (p.category === 'yoyo') yoyoCount++;
     else if (p.category === 'zhizhi') zhizhiCount++;
     else if (p.category === 'everyone') everyoneCount++;
     else if (p.category === 'explore') exploreCount++;
-
-    if (p.uploader_nickname && !uploaders.includes(p.uploader_nickname)) {
-      uploaders.push(p.uploader_nickname);
-    }
+    if (p.uploader_nickname && !uploaders.includes(p.uploader_nickname)) uploaders.push(p.uploader_nickname);
   }
 
   return {
-    photoCount: todayPhotos.length,
-    yoyoCount,
-    zhizhiCount,
-    everyoneCount,
-    exploreCount,
-    uploaders,
+    photoCount: rangePhotos.length,
+    yoyoCount, zhizhiCount, everyoneCount, exploreCount, uploaders,
   };
 }
 

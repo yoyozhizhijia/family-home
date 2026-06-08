@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Photo, Comment } from '../hooks/usePhotos';
 
 interface LightboxProps {
@@ -14,6 +14,9 @@ export default function Lightbox({ photos, currentIndex, onClose, onNavigate }: 
   const [author, setAuthor] = useState('');
   const [text, setText] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  // 触摸滑动检测
+  const touchRef = useRef<{ startX: number; startY: number } | null>(null);
 
   useEffect(() => {
     setComments(photo?.comments || []);
@@ -86,6 +89,21 @@ export default function Lightbox({ photos, currentIndex, onClose, onNavigate }: 
     <div
       className="lightbox-overlay fixed inset-0 z-50 overflow-y-auto"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      onTouchStart={(e) => { touchRef.current = { startX: e.touches[0].clientX, startY: e.touches[0].clientY }; }}
+      onTouchEnd={(e) => {
+        if (!touchRef.current) return;
+        const dx = e.changedTouches[0].clientX - touchRef.current.startX;
+        const dy = e.changedTouches[0].clientY - touchRef.current.startY;
+        // 水平滑动 > 50px → 切换照片
+        if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+          if (dx < 0) goNext(); else goPrev();
+        }
+        // 垂直滑动向下 > 80px → 关闭灯箱
+        if (dy > 80 && Math.abs(dy) > Math.abs(dx)) {
+          onClose();
+        }
+        touchRef.current = null;
+      }}
     >
       <div className="min-h-screen flex flex-col items-center py-6 px-4">
         {/* 顶栏 */}
