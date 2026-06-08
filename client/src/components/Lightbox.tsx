@@ -94,8 +94,12 @@ export default function Lightbox({ photos, currentIndex, onClose, onNavigate }: 
         if (!touchRef.current) return;
         const dx = e.changedTouches[0].clientX - touchRef.current.startX;
         const dy = e.changedTouches[0].clientY - touchRef.current.startY;
-        // 水平滑动超过50px且不是垂直滚动时，关闭灯箱
+        // 水平滑动 > 50px → 切换照片
         if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+          if (dx < 0) goNext(); else goPrev();
+        }
+        // 垂直滑动向下 > 80px → 关闭灯箱
+        if (dy > 80 && Math.abs(dy) > Math.abs(dx)) {
           onClose();
         }
         touchRef.current = null;
