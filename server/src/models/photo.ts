@@ -112,6 +112,19 @@ export async function initFromCloud(): Promise<void> {
 // 导出初始化 Promise，供 server 启动前等待
 export const dataInitPromise = initFromCloud();
 
+// ── 中国时区工具 ──────────────────────────────
+function chinaNow(): Date {
+  const d = new Date();
+  d.setHours(d.getHours() + 8);
+  return d;
+}
+function chinaDateStr(): string {
+  return chinaNow().toISOString().substring(0, 10);
+}
+function chinaISO(): string {
+  return chinaNow().toISOString();
+}
+
 // 批量上传交错：记录最后一次插入的时间戳和计数
 let lastInsertTs = 0;
 let lastInsertSource = '';
@@ -138,8 +151,8 @@ export async function insertPhoto(params: {
     thumbnail_url: params.thumbnailUrl,
     uploader_openid: params.uploaderOpenId || '',
     uploader_nickname: params.uploaderNickname || '家人',
-    uploaded_at: now.toISOString(),
-    month_key: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`,
+    uploaded_at: chinaISO(),
+    month_key: `${chinaDateStr().substring(0,7)}`,
     width: params.width || 0,
     height: params.height || 0,
     category: params.category || '',
@@ -262,7 +275,7 @@ export async function updatePhotoNickname(id: string, nickname: string): Promise
   return photo;
 }
 
-/** 今日统计：新增照片数 + 各作品集新增 + 贡献者 */
+/** 今日统计 */
 export function todayStats(): {
   photoCount: number;
   yoyoCount: number;
@@ -271,59 +284,25 @@ export function todayStats(): {
   exploreCount: number;
   uploaders: string[];
 } {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const todayISO = today.toISOString().substring(0, 10);
-
-  const todayPhotos = photos.filter((p) => p.uploaded_at.startsWith(todayISO));
-
-  const uploaders: string[] = [];
-  let yoyoCount = 0;
-  let zhizhiCount = 0;
-  let everyoneCount = 0;
-  let exploreCount = 0;
-
-  for (const p of todayPhotos) {
-    if (p.category === 'yoyo') yoyoCount++;
-    else if (p.category === 'zhizhi') zhizhiCount++;
-    else if (p.category === 'everyone') everyoneCount++;
-    else if (p.category === 'explore') exploreCount++;
-
-    if (p.uploader_nickname && !uploaders.includes(p.uploader_nickname)) {
-      uploaders.push(p.uploader_nickname);
-    }
-  }
-
-  return {
-    photoCount: todayPhotos.length,
-    yoyoCount,
-    zhizhiCount,
-    everyoneCount,
-    exploreCount,
-    uploaders,
-  };
+  const today = chinaDateStr();
+  return makeStats(today, today);
 }
 
 /** 昨日统计 */
-export function yesterdayStats(): typeof todayStats extends () => infer R ? R : never {
-  const d = new Date();
+export function yesterdayStats(): ReturnType<typeof makeStats> {
+  const d = chinaNow();
   d.setDate(d.getDate() - 1);
-  d.setHours(0, 0, 0, 0);
-  const start = d.toISOString().substring(0, 10);
-  d.setHours(23, 59, 59, 999);
-  return makeStats(start, d.toISOString().substring(0, 10));
+  const day = d.toISOString().substring(0, 10);
+  return makeStats(day, day);
 }
 
 /** 本周统计（周一至今天） */
-export function weekStats(): typeof todayStats extends () => infer R ? R : never {
-  const d = new Date();
-  const day = d.getDay();
+export function weekStats(): ReturnType<typeof makeStats> {
+  const d = chinaNow();
+  const dayOfWeek = d.getDay();
   const monday = new Date(d);
-  monday.setDate(d.getDate() - ((day + 6) % 7));
-  monday.setHours(0, 0, 0, 0);
-  const start = monday.toISOString().substring(0, 10);
-  const end = d.toISOString().substring(0, 10);
-  return makeStats(start, end);
+  monday.setDate(d.getDate() - ((dayOfWeek + 6) % 7));
+  return makeStats(monday.toISOString().substring(0, 10), d.toISOString().substring(0, 10));
 }
 
 /** 通用时间范围统计 */
