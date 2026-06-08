@@ -1,0 +1,38 @@
+# 服务器端口
+PORT=3000
+
+# ── 微信公众号配置 ──────────────────────────
+# 在公众号后台 「设置与开发 → 基本配置」 获取：
+#   AppID：公众号唯一标识
+#   AppSecret：开发者密码（32位，需点击"重置"查看）
+#   Token：自己设定的口令（英文/数字，3-32位），后台开启服务器配置时填写
+#   EncodingAESKey：消息加解密密钥，留空则明文模式（简单够用）
+WECHAT_TOKEN=<你的Token>
+WECHAT_APP_ID=<你的AppID>
+WECHAT_APP_SECRET=你的AppSecret
+WECHAT_ENCODING_AES_KEY=
+
+# ── 图片存储 ────────────────────────────────
+UPLOAD_DIR=uploads
+THUMBNAIL_WIDTH=400
+
+# ── 网站域名（部署后改为实际域名）────────────
+SITE_URL=http://localhost:3000
+
+# ── 管理员登录（务必修改密码！）──────────────
+ADMIN_USERNAME=admin
+ACCESS_PASSWORD=family2024
+
+# ── 自动加入暗号（发此文字到公众号自动成为家庭成员）─
+JOIN_PASSPHRASE=<你的暗号>
+
+# ── Cloudinary 图片存储（免费 25GB）─────────
+# 注册 https://cloudinary.com → Dashboard 获取：
+#   CLOUDINARY_CLOUD_NAME：Cloud name
+#   CLOUDINARY_API_KEY：API Key
+#   CLOUDINARY_API_SECRET：API Secret
+#   CLOUDINARY_STORAGE_ALERT_GB：告警阈值（免费 25GB，设 22.5GB = 90%）
+CLOUDINARY_CLOUD_NAME=<你的CloudName>
+CLOUDINARY_API_KEY=<你的APIKey>
+CLOUDINARY_API_SECRET=你的API Secret
+CLOUDINARY_STORAGE_ALERT_GB=22.5

@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.env
+data/
+uploads/
+*.db
+*.db-wal
+*.db-shm
+.DS_Store
+.codegraph/
+.reasonix/
+项目备忘录.md
+/*.png
